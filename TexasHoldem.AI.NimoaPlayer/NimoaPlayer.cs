@@ -47,17 +47,33 @@
             }
 
 
-            var chances = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-            if (chances >= .6) // Recommended
+            var ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+            var merit = ods * context.CurrentPot / context.MoneyToCall;
+            if (merit < 1)
+            {
+                if (context.CanCheck)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
+                return PlayerAction.Fold();
+            }
+
+            if (ods >= .6) // Recommended
             {
                 var smallBlindsTimes = RandomProvider.Next(6, 14);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-            if (chances > .4) // Risky
+            if (ods > .5) // Risky
             {
                 var smallBlindsTimes = RandomProvider.Next(1, 8);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
+            }
+
+            if (merit > 1)
+            {
+                return PlayerAction.CheckOrCall();
             }
 
             // fcsk it
