@@ -53,6 +53,8 @@
             }
         }
 
+        private static readonly IHandEvaluator HandEvaluator = new HandEvaluator();
+
         // TODO: generate all board variants or use hand potential algorithm
         public static float PostFlop(Card firstCard, Card secondCard, IEnumerable<Card> boardCards)
         {
@@ -62,8 +64,8 @@
             var ourHandsCards = boardCards.ToList(); // ours + comunity cards
             ourHandsCards.Add(firstCard);
             ourHandsCards.Add(secondCard);
-
-            //Logic.HandRankType ourRank = Helpers.GetHandRank(handsCards);
+            
+            BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
             IList<Card> fullDeck = Deck.AllCards;
             var remainingCasrds = fullDeck.ToList();
 
@@ -77,7 +79,9 @@
             foreach (var variant in oponentCardsVariants)
             {
                 // TODO: evaluate our rank only once
-                int handsComparisonResult = Helpers.CompareCards(ourHandsCards, variant.Concat(boardCards));
+                BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(variant.Concat(boardCards));
+                int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
+                // int handsComparisonResult = Helpers.CompareCards(ourHandsCards, variant.Concat(boardCards));
                 if (handsComparisonResult > 0)
                 {
                     ahead++;
