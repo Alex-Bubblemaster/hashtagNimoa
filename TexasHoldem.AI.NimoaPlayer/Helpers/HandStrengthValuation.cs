@@ -9,6 +9,7 @@
     public static class HandStrengthValuation
     {
         private const int MaxCardTypeValue = 14;
+        private const int PlayerCardsCount = 2;
 
         private static readonly int[,] StartingHandRecommendations =
             {
@@ -74,7 +75,7 @@
                 remainingCasrds.Remove(card);
             }
 
-            var oponentCardsVariants = CombinationsNoRepetitionsIterative(remainingCasrds);
+            var oponentCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCasrds, PlayerCardsCount);
 
             foreach (var variant in oponentCardsVariants)
             {
@@ -99,49 +100,6 @@
             float chances = (ahead + (float)tied / 2) / (ahead + tied + behind);
 
             return chances;
-        }
-
-        private static int playerCardsCount=2;
-
-        static void CombinationsNoRepetitions(int index, int start, List<Card[]> enemyCards, List<Card> remainingCards)
-        {
-            if (index >= playerCardsCount)
-            {
-                return;
-            }
-            else
-            {
-                var arr = new Card[playerCardsCount];
-                for (int i = start; i < remainingCards.Count; i++)
-                {
-                    arr[index] = remainingCards[i];
-                    CombinationsNoRepetitions(index + 1, i + 1, enemyCards, remainingCards);
-                }
-            }
-        }
-
-        private static IEnumerable<Card[]> CombinationsNoRepetitionsIterative(List<Card> remainingCards)
-        {
-            Card[] result = new Card[playerCardsCount];
-            Stack<int> stack = new Stack<int>();
-            stack.Push(0);
-
-            while (stack.Count > 0)
-            {
-                int index = stack.Count - 1;
-                int value = stack.Pop();
-
-                while (value < remainingCards.Count)
-                {
-                    result[index++] = remainingCards[value++];
-                    stack.Push(value);
-                    if (index == playerCardsCount)
-                    {
-                        yield return result;
-                        break;
-                    }
-                }
-            }
         }
     }
 }
