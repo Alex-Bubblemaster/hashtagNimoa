@@ -6,8 +6,6 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
 
     public static class CardsCombinations
     {
-        
-
         public static void CombinationsNoRepetitions(int index, int start, List<Card[]> enemyCards, List<Card> remainingCards, int variantCardsCount)
         {
             if (index >= variantCardsCount)
@@ -25,6 +23,7 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
             }
         }
 
+        // Source: http://rosettacode.org/wiki/Combinations
         public static IEnumerable<Card[]> CombinationsNoRepetitionsIterative(List<Card> remainingCards, int variantCardsCount)
         {
             Card[] result = new Card[variantCardsCount];

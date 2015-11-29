@@ -1,6 +1,7 @@
 ﻿namespace TexasHoldem.AI.NimoaPlayer
 {
     using System;
+    using System.Linq;
 
     using TexasHoldem.AI.NimoaPlayer.Helpers;
     using TexasHoldem.Logic;
@@ -46,8 +47,29 @@
                 return PlayerAction.CheckOrCall();
             }
 
-
+            // Fast
             var ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+            // Smart, really really slow
+            //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
+
+            // last enemy action based paranoia 
+            /*var enemyLastAction = context.PreviousRoundActions.Last().Action;
+            if (enemyLastAction.Type == PlayerActionType.Raise)
+            {
+                if (enemyLastAction.Money > context.SmallBlind * 50)
+                {
+                    ods -= .15f;
+                }
+                else if (enemyLastAction.Money > context.SmallBlind * 20)
+                {
+                    ods -= .1f;
+                }
+                else if (enemyLastAction.Money > context.SmallBlind * 10)
+                {
+                    ods -= .05f;
+                }
+            }*/
+
             var merit = ods * context.CurrentPot / context.MoneyToCall;
             if (merit < 1)
             {

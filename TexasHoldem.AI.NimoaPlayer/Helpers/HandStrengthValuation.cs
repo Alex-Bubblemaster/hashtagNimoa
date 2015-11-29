@@ -10,6 +10,7 @@
     {
         private const int MaxCardTypeValue = 14;
         private const int PlayerCardsCount = 2;
+        private static readonly IList<Card> fullDeck = Deck.AllCards;
 
         private static readonly int[,] StartingHandRecommendations =
             {
@@ -65,9 +66,8 @@
             var ourHandsCards = boardCards.ToList(); // ours + comunity cards
             ourHandsCards.Add(firstCard);
             ourHandsCards.Add(secondCard);
-            
+
             BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
-            IList<Card> fullDeck = Deck.AllCards;
             var remainingCasrds = fullDeck.ToList();
 
             foreach (var card in ourHandsCards)
@@ -97,7 +97,7 @@
                 }
             }
 
-            float chances = (ahead + (float)tied / 2) / (ahead + tied + behind);
+            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
 
             return chances;
         }
