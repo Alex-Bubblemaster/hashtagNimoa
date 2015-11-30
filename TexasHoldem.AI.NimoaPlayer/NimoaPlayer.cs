@@ -47,12 +47,20 @@
                 return PlayerAction.CheckOrCall();
             }
 
+            float ods = 0;
             // Fast
-            var ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+            //if (context.RoundType == GameRoundType.River)
+            //{
+                ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+            //}
+            //else
+            //{
+            //    ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            //}
             // Smart, really really slow
             //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
 
-            // last enemy action based paranoia 
+            // last enemy action based paranoia. Only weors if the other AI is good.
             /*var enemyLastAction = context.PreviousRoundActions.Last().Action;
             if (enemyLastAction.Type == PlayerActionType.Raise)
             {

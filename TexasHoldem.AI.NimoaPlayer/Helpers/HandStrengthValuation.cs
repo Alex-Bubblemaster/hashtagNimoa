@@ -76,6 +76,8 @@
             }
 
             var oponentCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCasrds, PlayerCardsCount);
+            //var oponentCardsVariants2=new List<Card[]>();
+            //CardsCombinations.CombinationsNoRepetitions(0, 0, remainingCasrds, PlayerCardsCount, oponentCardsVariants2, new Card[2]);
 
             foreach (var variant in oponentCardsVariants)
             {

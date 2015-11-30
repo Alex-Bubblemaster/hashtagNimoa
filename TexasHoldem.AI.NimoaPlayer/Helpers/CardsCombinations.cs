@@ -1,24 +1,27 @@
 namespace TexasHoldem.AI.NimoaPlayer.Helpers
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using TexasHoldem.Logic.Cards;
 
     public static class CardsCombinations
     {
-        public static void CombinationsNoRepetitions(int index, int start, List<Card[]> enemyCards, List<Card> remainingCards, int variantCardsCount)
+        public static void CombinationsNoRepetitions(int index, int start, List<Card> remainingCards, int variantCardsCount, List<Card[]> result, Card[] currentCombination)
         {
+            //var arr = new Card[variantCardsCount];
             if (index >= variantCardsCount)
             {
+                result.Add(currentCombination);
+                //currentCombination = new Card[variantCardsCount];
                 return;
             }
             else
             {
-                var arr = new Card[variantCardsCount];
                 for (int i = start; i < remainingCards.Count; i++)
                 {
-                    arr[index] = remainingCards[i];
-                    CombinationsNoRepetitions(index + 1, i + 1, enemyCards, remainingCards, variantCardsCount);
+                    currentCombination[index] = remainingCards[i];
+                    CombinationsNoRepetitions(index + 1, i + 1, remainingCards, variantCardsCount, result, currentCombination.ToArray());
                 }
             }
         }
@@ -41,7 +44,7 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
                     stack.Push(value);
                     if (index == variantCardsCount)
                     {
-                        yield return result;
+                        yield return result.ToArray();
                         break;
                     }
                 }
