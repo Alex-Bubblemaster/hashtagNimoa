@@ -75,9 +75,31 @@
 
             //var boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
 
-            var boardVariants = GetBoardVariants(boardCards.ToList(), remainingCards);
+            //var boardVariants = GetBoardVariants(boardCards.ToList(), remainingCards);
 
             var enemydCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
+
+            //var boardCardsVariants = new List<Card[]>();
+            var boardVariants = new List<List<Card>>();
+            if (boardCards.Count() == 3)
+            {
+                //boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
+                foreach (var boardCardsVariant in enemydCardsVariants)
+                {
+                    boardVariants.Add(boardCards.Concat(boardCardsVariant).ToList());
+                }
+
+                //return boardVariants;
+            }
+            else if (boardCards.Count() == 4)
+            {
+                foreach (var card in remainingCards)
+                {
+                    List<Card> cards = boardCards.ToList();
+                    cards.Add(card);
+                    boardVariants.Add(cards);
+                }
+            }
 
             int ahead = 0;
             int tied = 0;

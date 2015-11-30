@@ -53,11 +53,12 @@
             //{
                 ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             //}
-            //else
-            //{
-            //    ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            //}
-            // Smart, really really slow
+            /*else
+            {
+                // Smart, really really slow
+                ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            }*/
+
             //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
 
             // last enemy action based paranoia. Only weors if the other AI is good.
