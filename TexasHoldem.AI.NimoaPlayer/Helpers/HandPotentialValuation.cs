@@ -4,6 +4,7 @@
     using System.Linq;
 
     using TexasHoldem.Logic.Cards;
+    using TexasHoldem.Logic.Helpers;
 
     public class HandPotentialValuation
     {
@@ -50,6 +51,103 @@
             }
 
             return odsSum / potentialComunityCards.Count();
+        }
+
+        private static readonly IHandEvaluator HandEvaluator = new HandEvaluator();
+
+        public static float GetHandPotential2(Card firstCard, Card secondCard, IEnumerable<Card> boardCards)
+        {
+            var cardsToAdd = AllPublicCardsCount - boardCards.Count();
+
+            if (cardsToAdd == 0)
+            {
+                return HandStrengthValuation.PostFlop(firstCard, secondCard, boardCards);
+            }
+
+            var remainingCards = fullDeck.ToList();
+            remainingCards.Remove(firstCard);
+            remainingCards.Remove(secondCard);
+
+            foreach (var card in boardCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            //var boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
+
+            var boardVariants = GetBoardVariants(boardCards.ToList(), remainingCards);
+
+            var enemydCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
+
+            int ahead = 0;
+            int tied = 0;
+            int behind = 0;
+
+            //var ourCurrentHand = boardCards.ToList();
+            //ourCurrentHand.Add(firstCard);
+            //ourCurrentHand.Add(secondCard);
+
+            foreach (var boardVariant in boardVariants)
+            {
+                // var ourHandVariant = ourCurrentHand.Concat(boardCardsVariant);
+                var ourHand = boardVariant.ToList();
+                ourHand.Add(firstCard);
+                ourHand.Add(secondCard);
+                var ourBestHandVariant = HandEvaluator.GetBestHand(ourHand);
+                foreach (var enemydCardsVariant in enemydCardsVariants)
+                {
+                    if (boardVariant.Contains(enemydCardsVariant[0]) || boardVariant.Contains(enemydCardsVariant[1]))
+                    {
+                        continue;
+                    }
+
+                    var enemyHands = enemydCardsVariant.Concat(boardVariant);
+                    var enemyBestHandVariant = HandEvaluator.GetBestHand(enemyHands);
+                    var handsComparisonResult = ourBestHandVariant.CompareTo(enemyBestHandVariant);
+
+                    if (handsComparisonResult > 0)
+                    {
+                        ahead++;
+                    }
+                    else if (handsComparisonResult == 0)
+                    {
+                        tied++;
+                    }
+                    else
+                    {
+                        behind++;
+                    }
+                }
+            }
+
+            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+
+            return chances;
+        }
+
+        private static List<List<Card>> GetBoardVariants(List<Card> board, List<Card> remainingCards)
+        {
+            var boardCardsVariants = new List<Card[]>();
+            var boardVariants = new List<List<Card>>();
+            if (board.Count == 3)
+            {
+                boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
+                foreach (var boardCardsVariant in boardCardsVariants)
+                {
+                    boardVariants.Add(board.Concat(boardCardsVariant).ToList());
+                }
+
+                return boardVariants;
+            }
+
+            foreach (var card in remainingCards)
+            {
+                List<Card> cards = board.ToList();
+                cards.Add(card);
+                boardVariants.Add(cards);
+            }
+
+            return boardVariants;
         }
     }
 }
