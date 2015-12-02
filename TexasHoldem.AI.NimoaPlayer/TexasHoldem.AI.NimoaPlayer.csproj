@@ -45,6 +45,7 @@
     <Compile Include="Helpers\HandPotentialValuation.cs" />
     <Compile Include="Helpers\HandStrengthValuation.cs" />
     <Compile Include="NimoaPlayer.cs" />
+    <Compile Include="NimoaPlayerParanoid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
