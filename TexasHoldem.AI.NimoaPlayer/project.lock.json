@@ -89,7 +89,7 @@
           "lib/net45/_._": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -745,7 +745,7 @@
           "lib/net45/_._": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -1425,7 +1425,7 @@
           "lib/net45/_._": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -2153,7 +2153,7 @@
           "lib/dotnet/Microsoft.VisualBasic.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -2977,7 +2977,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -4209,7 +4209,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -5486,7 +5486,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.0, )"
@@ -6594,7 +6594,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -7724,7 +7724,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -8898,7 +8898,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -10049,7 +10049,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -11223,7 +11223,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -12374,7 +12374,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -13548,7 +13548,7 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "StyleCop.Analyzers/1.0.0-beta016": {},
+      "StyleCop.Analyzers/1.0.0-beta015": {},
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
@@ -15150,8 +15150,8 @@
         "ref/xamarinmac20/_._"
       ]
     },
-    "StyleCop.Analyzers/1.0.0-beta016": {
-      "sha512": "OUt2JLsSMTrgaci7Wj6rgcIbfuwXeuTfORMclQxWAi9VMk89yExmHn2iUt7lCv/f+cOYcxlmeo2RyvbWPdVhLg==",
+    "StyleCop.Analyzers/1.0.0-beta015": {
+      "sha512": "fkJr8G7IAfMP3mOIMn4ti43xJwXXbxUNKmUaoLWLnUE8LLC/BDI4RnoI7is2W6UT0rAa0LuUYXkaXaisW8Zspg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -15159,7 +15159,8 @@
         "analyzers/dotnet/cs/Newtonsoft.Json.dll",
         "analyzers/dotnet/cs/StyleCop.Analyzers.CodeFixes.dll",
         "analyzers/dotnet/cs/StyleCop.Analyzers.dll",
-        "package/services/metadata/core-properties/876d20930e734a409811fe391d6bf34f.psmdcp",
+        "build/StyleCop.Analyzers.targets",
+        "package/services/metadata/core-properties/a994a78fe9a646d8abde5ac2e45d152e.psmdcp",
         "StyleCop.Analyzers.nuspec",
         "tools/install.ps1",
         "tools/uninstall.ps1"

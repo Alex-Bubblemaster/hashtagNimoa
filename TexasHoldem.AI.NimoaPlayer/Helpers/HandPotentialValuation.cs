@@ -57,9 +57,7 @@
 
         public static float GetHandPotential2(Card firstCard, Card secondCard, IEnumerable<Card> boardCards)
         {
-            var cardsToAdd = AllPublicCardsCount - boardCards.Count();
-
-            if (cardsToAdd == 0)
+            if (boardCards.Count() == AllPublicCardsCount)
             {
                 return HandStrengthValuation.PostFlop(firstCard, secondCard, boardCards);
             }
@@ -73,23 +71,14 @@
                 remainingCards.Remove(card);
             }
 
-            //var boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
-
-            //var boardVariants = GetBoardVariants(boardCards.ToList(), remainingCards);
-
             var enemydCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
-
-            //var boardCardsVariants = new List<Card[]>();
             var boardVariants = new List<List<Card>>();
             if (boardCards.Count() == 3)
             {
-                //boardCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
                 foreach (var boardCardsVariant in enemydCardsVariants)
                 {
                     boardVariants.Add(boardCards.Concat(boardCardsVariant).ToList());
                 }
-
-                //return boardVariants;
             }
             else if (boardCards.Count() == 4)
             {
@@ -145,6 +134,68 @@
             float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
 
             return chances;
+        }
+
+        // chances of improoving your hand, list of improoved hands
+        public void GetHandPotential3(Card firstCard, Card secondCard, IEnumerable<Card> boardCards)
+        {
+            if (boardCards.Count() == AllPublicCardsCount)
+            {
+                //return HandStrengthValuation.PostFlop(firstCard, secondCard, boardCards);
+            }
+
+            var remainingCards = fullDeck.ToList();
+            remainingCards.Remove(firstCard);
+            remainingCards.Remove(secondCard);
+
+            foreach (var card in boardCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            var ourKnownCards = boardCards.ToList();
+            ourKnownCards.Add(firstCard);
+            ourKnownCards.Add(secondCard);
+
+            BestHand ourWeakestPossibleHand = HandEvaluator.GetBestHand(ourKnownCards);
+            var ourImprovedHands = new List<BestHand>();
+            var enemydCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2);
+            var boardVariants = new List<List<Card>>();
+            if (boardCards.Count() == 3)
+            {
+                foreach (var boardCardsVariant in enemydCardsVariants)
+                {
+                    //var boarVariant = ;
+                    boardVariants.Add(boardCards.Concat(boardCardsVariant).ToList());
+
+                    var newBestHand = HandEvaluator.GetBestHand(ourKnownCards.Concat(boardCardsVariant).ToList());
+
+                    if (newBestHand.CompareTo(ourWeakestPossibleHand) > 0)
+                    {
+                        ourImprovedHands.Add(newBestHand);
+                    }
+                }
+            }
+            else if (boardCards.Count() == 4)
+            {
+                foreach (var card in remainingCards)
+                {
+                    List<Card> cards = boardCards.ToList();
+                    cards.Add(card);
+                    boardVariants.Add(cards);
+
+                    var ourCards = ourKnownCards.ToList();
+                    ourCards.Add(card);
+                    var newBestHand = HandEvaluator.GetBestHand(ourCards);
+
+                    if (newBestHand.CompareTo(ourWeakestPossibleHand) > 0)
+                    {
+                        ourImprovedHands.Add(newBestHand);
+                    }
+                }
+            }
+
+            var chancesOfImproovingHand = ourImprovedHands.Count / 1081;
         }
 
         private static List<List<Card>> GetBoardVariants(List<Card> board, List<Card> remainingCards)
