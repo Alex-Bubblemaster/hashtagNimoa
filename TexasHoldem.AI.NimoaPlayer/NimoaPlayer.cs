@@ -31,6 +31,18 @@
                     }
                 }
 
+                if (context.PreviousRoundActions.Count > 0)
+                {
+                    var enemyLastAction = context.PreviousRoundActions.Last().Action;
+                    if (enemyLastAction.Type == PlayerActionType.Raise)
+                    {
+                        if (enemyLastAction.Money > context.SmallBlind * 10)
+                        {
+                            playHand--;
+                        }
+                    }
+                }
+
                 //check total bid ammount
                 if (playHand == CardValuationType.Risky && context.MoneyToCall < context.SmallBlind * 20)
                 {
@@ -64,7 +76,7 @@
 
             float ods = 0;
             // Fast
-            if (context.RoundType == GameRoundType.Flop)
+            if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.River)
             {
                 ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
@@ -75,24 +87,6 @@
             }
 
             //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
-
-            // last enemy action based paranoia. Only weors if the other AI is good.
-            /*var enemyLastAction = context.PreviousRoundActions.Last().Action;
-            if (enemyLastAction.Type == PlayerActionType.Raise)
-            {
-                if (enemyLastAction.Money > context.SmallBlind * 50)
-                {
-                    ods -= .15f;
-                }
-                else if (enemyLastAction.Money > context.SmallBlind * 20)
-                {
-                    ods -= .1f;
-                }
-                else if (enemyLastAction.Money > context.SmallBlind * 10)
-                {
-                    ods -= .05f;
-                }
-            }*/
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
             if (merit < 1)
@@ -110,43 +104,10 @@
                 return PlayerAction.Raise(context.MoneyLeft);
             }
 
-            if (context.MyMoneyInTheRound > context.SmallBlind * 400)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
-            if (ods >= .8)
-            {
-                var smallBlindsTimes = RandomProvider.Next(24, 50);
-                return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-            }
-
-            if (context.MyMoneyInTheRound > context.SmallBlind * 200)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
-            if (ods >= .7) // Recommended
-            {
-                var smallBlindsTimes = RandomProvider.Next(12, 26);
-                return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-            }
-
-            if (context.MyMoneyInTheRound > context.SmallBlind * 100)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods >= .6)
             {
                 var smallBlindsTimes = RandomProvider.Next(6, 14);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-            }
-
-
-            if (context.MyMoneyInTheRound > context.SmallBlind * 50)
-            {
-                return PlayerAction.CheckOrCall();
             }
 
             if (ods > .5) // Risky

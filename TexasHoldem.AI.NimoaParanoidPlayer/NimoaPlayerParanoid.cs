@@ -1,10 +1,10 @@
-﻿namespace TexasHoldem.AI.NimoaPlayer
+﻿namespace TexasHoldem.AI.NimoaParanoidPlayer
 {
     using System;
+    using System.Collections.ObjectModel;
     using System.Linq;
-    using System.Security.Authentication;
 
-    using TexasHoldem.AI.NimoaPlayer.Helpers;
+    using TexasHoldem.AI.NimoaParanoidPlayer.Helpers;
     using TexasHoldem.Logic;
     using TexasHoldem.Logic.Extensions;
     using TexasHoldem.Logic.Players;
@@ -12,6 +12,16 @@
     public class NimoaPlayerParanoid : BasePlayer
     {
         public override string Name { get; } = "ScardyCat_" + Guid.NewGuid();
+
+        private static int startMoney;
+
+        public override void StartGame(StartGameContext context)
+        {
+            base.StartGame(context);
+            startMoney = context.StartMoney;
+            // TODO: cheat
+            StartGameContext c = new StartGameContext(context.PlayerNames, startMoney * 3);
+        }
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
@@ -31,7 +41,7 @@
                     }
                 }
 
-                /*if (context.PreviousRoundActions.Count > 0)
+                if (context.PreviousRoundActions.Count > 0)
                 {
                     var enemyLastAction = context.PreviousRoundActions.Last().Action;
                     if (enemyLastAction.Type == PlayerActionType.Raise)
@@ -41,10 +51,10 @@
                             playHand--;
                         }
                     }
-                }*/
+                }
 
                 //check total bid ammount
-                    if (playHand == CardValuationType.Risky && context.MoneyToCall < context.SmallBlind * 20)
+                if (playHand == CardValuationType.Risky) // && context.MoneyToCall < context.SmallBlind * 20
                 {
                     var smallBlindsTimes = RandomProvider.Next(1, 8);
                     return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
@@ -87,6 +97,8 @@
             }
 
             //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
+
+            //TODO: raise ods if last action is call and money <= smallBlind
 
             // last enemy action based paranoia. Only weors if the other AI is good.
             if (context.PreviousRoundActions.Count > 0)
