@@ -57,7 +57,8 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
 
         public static List<int[]> GetRandomCardsIndexes(int variants, int cardsCount, int maxIndex)
         {
-            var combinations = new HashSet<int[]>();
+            var combinations = new List<int[]>(variants);
+            var uniqueCheck = new HashSet<string>();
 
             while (combinations.Count < variants)
             {
@@ -67,10 +68,16 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
                     variant.Add(random.Next(0, maxIndex + 1));
                 }
 
-                combinations.Add(variant.ToArray());
+                var countBeforeAdd = uniqueCheck.Count;
+                string val = string.Join(", ", variant);
+                uniqueCheck.Add(val);
+                if (uniqueCheck.Count != countBeforeAdd)
+                {
+                    combinations.Add(variant.ToArray());
+                }
             }
 
-            return combinations.ToList();
+            return combinations;
         }
     }
 }
