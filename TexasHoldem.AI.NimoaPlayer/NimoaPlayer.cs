@@ -11,7 +11,47 @@
 
     public class NimoaPlayer : BasePlayer
     {
+        private static float roundOds;
+
+        private static int gamesCount = 0;
+
+        private static int startMoney;
+
         public override string Name { get; } = "DaDummestPlayerEver_" + Guid.NewGuid();
+
+        public override void StartRound(StartRoundContext context)
+        {
+            //TODO: calculate ods here
+            base.StartRound(context);
+            //context.CommunityCards
+        }
+
+        public override void StartGame(StartGameContext context)
+        {
+            base.StartGame(context);
+            gamesCount++;
+            startMoney = context.StartMoney;
+        }
+
+        /*public override void StartHand(StartHandContext context)
+        {
+            base.StartHand(context);
+        }
+
+        public override void EndRound(EndRoundContext context)
+        {
+            base.EndRound(context);
+        }
+
+        public override void EndHand(EndHandContext context)
+        {
+            base.EndHand(context);
+        }
+
+        public override void EndGame(EndGameContext context)
+        {
+            base.EndGame(context);
+        }*/
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
@@ -75,14 +115,23 @@
             }
 
             float ods = 0;
-            // Fast
-            if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.River)
+            if (context.RoundType == GameRoundType.Flop)
             {
+                // Approximation
+                ods = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    10000);
+            }
+            else if (context.RoundType == GameRoundType.River)
+            {
+                // Fast
                 ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
-                // Smart, really really slow
+                // Accurate, really really slow
                 ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 

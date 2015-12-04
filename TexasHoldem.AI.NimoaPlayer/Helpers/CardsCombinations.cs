@@ -55,9 +55,9 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
             }
         }
 
-        public static ICollection<HashSet<int>> GetRandomCardsIndexes(int variants, int cardsCount, int maxIndex)
+        public static List<int[]> GetRandomCardsIndexes(int variants, int cardsCount, int maxIndex)
         {
-            var combinations = new HashSet<HashSet<int>>();
+            var combinations = new HashSet<int[]>();
 
             while (combinations.Count < variants)
             {
@@ -67,10 +67,10 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
                     variant.Add(random.Next(0, maxIndex + 1));
                 }
 
-                combinations.Add(variant);
+                combinations.Add(variant.ToArray());
             }
 
-            return combinations;
+            return combinations.ToList();
         }
     }
 }
