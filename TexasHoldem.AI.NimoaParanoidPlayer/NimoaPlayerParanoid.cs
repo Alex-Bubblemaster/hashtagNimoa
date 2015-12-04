@@ -17,10 +17,9 @@
 
         public override void StartGame(StartGameContext context)
         {
-            base.StartGame(context);
-            startMoney = context.StartMoney;
-            // TODO: cheat
             StartGameContext c = new StartGameContext(context.PlayerNames, startMoney * 3);
+            base.StartGame(c);
+            startMoney = context.StartMoney;
         }
 
         public override PlayerAction GetTurn(GetTurnContext context)
