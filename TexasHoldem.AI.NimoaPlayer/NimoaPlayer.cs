@@ -71,39 +71,17 @@
                     }
                 }
 
-                if (context.PreviousRoundActions.Count > 0)
-                {
-                    var enemyLastAction = context.PreviousRoundActions.Last().Action;
-                    if (enemyLastAction.Type == PlayerActionType.Raise)
-                    {
-                        if (enemyLastAction.Money > context.SmallBlind * 10)
-                        {
-                            playHand--;
-                        }
-                    }
-                }
-
                 //check total bid ammount
-                if (playHand == CardValuationType.Risky && context.MoneyToCall < context.SmallBlind * 20)
+                if (playHand == CardValuationType.Risky)
                 {
                     var smallBlindsTimes = RandomProvider.Next(1, 8);
                     return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
                 }
 
-                if (playHand == CardValuationType.Risky)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                if (playHand == CardValuationType.Recommended && context.MoneyToCall < context.SmallBlind * 50)
+                if (playHand == CardValuationType.Recommended)
                 {
                     var smallBlindsTimes = RandomProvider.Next(6, 14);
                     return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-                }
-
-                if (playHand == CardValuationType.Recommended)
-                {
-                    return PlayerAction.CheckOrCall();
                 }
 
                 if (context.CanCheck)
@@ -114,6 +92,7 @@
                 return PlayerAction.Fold();
             }
 
+            //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             float ods = 0;
             if (context.RoundType == GameRoundType.Flop)
             {
