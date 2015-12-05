@@ -29,6 +29,36 @@
                 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } // A2o K2o Q2o J2o T2o 92o 82o 72o 62o 52o 42o 32o 22
             };
 
+        private static readonly float[,] StartingHandsOds =
+            {
+                { .85f, .76f, .66f, .65f, .65f, .63f, .62f, .61f, .60f, .60f, .59f, .58f, .57f },
+                { .65f, .82f, .63f, .63f, .62f, .60f, .58f, .58f, .57f, .56f, .55f, .54f, .53f },
+                { .64f, .61f, .80f, .60f, .59f, .58f, .56f, .54f, .54f, .53f, .52f, .51f, .50f },
+                { .64f, .61f, .58f, .77f, .58f, .56f, .54f, .52f, .51f, .50f, .49f, .48f, .47f },
+                { .63f, .59f, .57f, .55f, .75f, .54f, .52f, .51f, .49f, .47f, .47f, .46f, .45f },
+                { .61f, .58f, .55f, .53f, .52f, .72f, .51f, .49f, .47f, .46f, .44f, .43f, .42f },
+                { .60f, .56f, .54f, .51f, .50f, .48f, .69f, .48f, .46f, .45f, .43f, .41f, .40f },
+                { .59f, .55f, .52f, .50f, .48f, .46f, .45f, .66f, .45f, .44f, .42f, .40f, .38f },
+                { .58f, .54f, .51f, .48f, .46f, .44f, .43f, .42f, .63f, .43f, .41f, .40f, .38f },
+                { .58f, .53f, .50f, .47f, .44f, .43f, .41f, .41f, .40f, .60f, .41f, .40f, .38f },
+                { .57f, .52f, .49f, .46f, .44f, .42f, .39f, .38f, .39f, .38f, .57f, .38f, .37f },
+                { .56f, .51f, .48f, .45f, .43f, .40f, .37f, .37f, .36f, .36f, .35f, .54f, .36f },
+                { .55f, .51f, .47f, .44f, .42f, .39f, .37f, .35f, .34f, .34f, .33f, .32f, .50f }
+            };
+
+        public static float PreFlopOdsLookupTable(Card firstCard, Card secondCard)
+        {
+            float value = firstCard.Suit == secondCard.Suit
+                          ? (firstCard.Type > secondCard.Type
+                                 ? StartingHandsOds[MaxCardTypeValue - (int)firstCard.Type, MaxCardTypeValue - (int)secondCard.Type]
+                                 : StartingHandsOds[MaxCardTypeValue - (int)secondCard.Type, MaxCardTypeValue - (int)firstCard.Type])
+                          : (firstCard.Type > secondCard.Type
+                                 ? StartingHandsOds[MaxCardTypeValue - (int)secondCard.Type, MaxCardTypeValue - (int)firstCard.Type]
+                                 : StartingHandsOds[MaxCardTypeValue - (int)firstCard.Type, MaxCardTypeValue - (int)secondCard.Type]);
+
+            return value;
+        }
+
         // http://www.rakebackpros.net/texas-holdem-starting-hands/
         public static CardValuationType PreFlopLookupTable(Card firstCard, Card secondCard)
         {

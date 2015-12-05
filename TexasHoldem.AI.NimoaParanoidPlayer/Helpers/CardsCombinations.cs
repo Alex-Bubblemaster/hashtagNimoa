@@ -1,5 +1,6 @@
 namespace TexasHoldem.AI.NimoaParanoidPlayer.Helpers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -7,6 +8,8 @@ namespace TexasHoldem.AI.NimoaParanoidPlayer.Helpers
 
     public static class CardsCombinations
     {
+        private static readonly Random random = new Random();
+
         public static void CombinationsNoRepetitions(int index, int start, List<Card> remainingCards, int variantCardsCount, List<Card[]> result, Card[] currentCombination)
         {
             //var arr = new Card[variantCardsCount];
@@ -49,6 +52,31 @@ namespace TexasHoldem.AI.NimoaParanoidPlayer.Helpers
                     }
                 }
             }
+        }
+
+        public static List<int[]> GetRandomCardsIndexes(int variants, int cardsCount, int maxIndex)
+        {
+            var combinations = new List<int[]>(variants);
+            var uniqueCheck = new HashSet<string>();
+
+            while (combinations.Count < variants)
+            {
+                var variant = new HashSet<int>();
+                while (variant.Count < cardsCount)
+                {
+                    variant.Add(random.Next(0, maxIndex + 1));
+                }
+
+                var countBeforeAdd = uniqueCheck.Count;
+                string val = string.Join(", ", variant);
+                uniqueCheck.Add(val);
+                if (uniqueCheck.Count != countBeforeAdd)
+                {
+                    combinations.Add(variant.ToArray());
+                }
+            }
+
+            return combinations;
         }
     }
 }

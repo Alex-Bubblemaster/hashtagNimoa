@@ -222,5 +222,70 @@
 
             return boardVariants;
         }
+
+        public static float HandPotentialMonteCarloApproximation(
+            Card firstCard,
+            Card secondCard,
+            IEnumerable<Card> boardCards,
+            int randomCasesCount)
+        {
+            var remainingCards = fullDeck.ToList();
+            remainingCards.Remove(firstCard);
+            remainingCards.Remove(secondCard);
+
+            foreach (var card in boardCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            var ourKnownCards = boardCards.ToList();
+            ourKnownCards.Add(firstCard);
+            ourKnownCards.Add(secondCard);
+
+            var cardVariations = CardsCombinations.GetRandomCardsIndexes(
+                randomCasesCount,
+                2 + 5 - boardCards.Count(),
+                remainingCards.Count - 1);
+
+            int ahead = 0;
+            int tied = 0;
+            int behind = 0;
+            foreach (var cardVariation in cardVariations)
+            {
+                var publicCardsVariant = boardCards.ToList();
+
+                publicCardsVariant.Add(remainingCards[cardVariation[2]]);
+                if (boardCards.Count() == 3)
+                {
+                    publicCardsVariant.Add(remainingCards[cardVariation[3]]);
+                }
+
+                var ourCards = publicCardsVariant.ToList();
+                ourCards.Add(firstCard);
+                ourCards.Add(secondCard);
+
+                // enemy cards
+                publicCardsVariant.Add(remainingCards[cardVariation[0]]);
+                publicCardsVariant.Add(remainingCards[cardVariation[1]]);
+
+                int comparisonResult = Helpers.CompareCards(ourCards, publicCardsVariant);
+                if (comparisonResult > 0)
+                {
+                    ahead++;
+                }
+                else if (comparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+
+            return chances;
+        }
     }
 }

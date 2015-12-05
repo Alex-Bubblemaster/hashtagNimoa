@@ -15,89 +15,50 @@
 
         private static int startMoney;
 
-        public override void StartGame(StartGameContext context)
-        {
-            StartGameContext c = new StartGameContext(context.PlayerNames, startMoney * 3);
-            base.StartGame(c);
-            startMoney = context.StartMoney;
-        }
+        private static float roundOdds;
 
-        public override PlayerAction GetTurn(GetTurnContext context)
+        public override void StartRound(StartRoundContext context)
         {
             if (context.RoundType == GameRoundType.PreFlop)
             {
-                var playHand = HandStrengthValuation.PreFlopLookupTable(this.FirstCard, this.SecondCard);
-                //||notrecomended
-                if (playHand == CardValuationType.Unplayable)
-                {
-                    if (context.CanCheck)
-                    {
-                        return PlayerAction.CheckOrCall();
-                    }
-                    else
-                    {
-                        return PlayerAction.Fold();
-                    }
-                }
-
-                if (context.PreviousRoundActions.Count > 0)
-                {
-                    var enemyLastAction = context.PreviousRoundActions.Last().Action;
-                    if (enemyLastAction.Type == PlayerActionType.Raise)
-                    {
-                        if (enemyLastAction.Money > context.SmallBlind * 10)
-                        {
-                            playHand--;
-                        }
-                    }
-                }
-
-                //check total bid ammount
-                if (playHand == CardValuationType.Risky) // && context.MoneyToCall < context.SmallBlind * 20
-                {
-                    var smallBlindsTimes = RandomProvider.Next(1, 8);
-                    return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-                }
-
-                if (playHand == CardValuationType.Risky)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                if (playHand == CardValuationType.Recommended && context.MoneyToCall < context.SmallBlind * 50)
-                {
-                    var smallBlindsTimes = RandomProvider.Next(6, 14);
-                    return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-                }
-
-                if (playHand == CardValuationType.Recommended)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                if (context.CanCheck)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                return PlayerAction.Fold();
+                roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-
-            float ods = 0;
-            // Fast
-            if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.River)
+            else if (context.RoundType == GameRoundType.Flop)
             {
-                ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                // Approximation
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    5000);
+            }
+            else if (context.RoundType == GameRoundType.River)
+            {
+                // Fast
+                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
-                // Smart, really really slow
-                ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+                // >1% inaccuracy
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    2000);
+                // Accurate, really really slow
+                // var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 
-            //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
+            base.StartRound(context);
+        }
 
-            //TODO: raise ods if last action is call and money <= smallBlind
+
+
+        public override PlayerAction GetTurn(GetTurnContext context)
+        {
+            float ods = roundOdds;
+
+            // TODO: raise ods if last action is call and money <= smallBlind
 
             // last enemy action based paranoia. Only weors if the other AI is good.
             if (context.PreviousRoundActions.Count > 0)
@@ -121,7 +82,7 @@
             }
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
-            if (merit < 1)
+            if (merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
                 {
@@ -136,18 +97,13 @@
                 return PlayerAction.Raise(context.MoneyLeft);
             }
 
-            if (context.MyMoneyInTheRound > context.SmallBlind * 400)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods >= .8)
             {
                 var smallBlindsTimes = RandomProvider.Next(24, 50);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-            if (context.MyMoneyInTheRound > context.SmallBlind * 200)
+            if (context.MyMoneyInTheRound > startMoney / 2)
             {
                 return PlayerAction.CheckOrCall();
             }
@@ -158,7 +114,7 @@
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-            if (context.MyMoneyInTheRound > context.SmallBlind * 100)
+            if (context.MyMoneyInTheRound > startMoney / 4)
             {
                 return PlayerAction.CheckOrCall();
             }
@@ -170,7 +126,7 @@
             }
 
 
-            if (context.MyMoneyInTheRound > context.SmallBlind * 50)
+            if (context.MyMoneyInTheRound > startMoney / 6)
             {
                 return PlayerAction.CheckOrCall();
             }

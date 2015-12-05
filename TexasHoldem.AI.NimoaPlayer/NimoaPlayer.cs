@@ -48,9 +48,9 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    1000);
+                    2000);
                 // Accurate, really really slow
-                // ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+                //var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 
             base.StartRound(context);
