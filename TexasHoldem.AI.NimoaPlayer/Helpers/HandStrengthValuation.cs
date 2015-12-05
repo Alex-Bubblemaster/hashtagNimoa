@@ -46,6 +46,18 @@
                 { .55f, .51f, .47f, .44f, .42f, .39f, .37f, .35f, .34f, .34f, .33f, .32f, .50f }
             };
 
+        public static float PreFlopOdsLookupTable(Card firstCard, Card secondCard)
+        {
+            float value = firstCard.Suit == secondCard.Suit
+                          ? (firstCard.Type > secondCard.Type
+                                 ? StartingHandsOds[MaxCardTypeValue - (int)firstCard.Type, MaxCardTypeValue - (int)secondCard.Type]
+                                 : StartingHandsOds[MaxCardTypeValue - (int)secondCard.Type, MaxCardTypeValue - (int)firstCard.Type])
+                          : (firstCard.Type > secondCard.Type
+                                 ? StartingHandsOds[MaxCardTypeValue - (int)secondCard.Type, MaxCardTypeValue - (int)firstCard.Type]
+                                 : StartingHandsOds[MaxCardTypeValue - (int)firstCard.Type, MaxCardTypeValue - (int)secondCard.Type]);
+
+            return value;
+        }
 
         // http://www.rakebackpros.net/texas-holdem-starting-hands/
         public static CardValuationType PreFlopLookupTable(Card firstCard, Card secondCard)
