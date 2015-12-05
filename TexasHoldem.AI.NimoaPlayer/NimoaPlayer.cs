@@ -55,7 +55,7 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            if (context.RoundType == GameRoundType.PreFlop)
+            /*if (context.RoundType == GameRoundType.PreFlop)
             {
                 var playHand = HandStrengthValuation.PreFlopLookupTable(this.FirstCard, this.SecondCard);
                 //||notrecomended
@@ -90,18 +90,22 @@
                 }
 
                 return PlayerAction.Fold();
-            }
+            }*/
 
             //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             float ods = 0;
-            if (context.RoundType == GameRoundType.Flop)
+            if (context.RoundType == GameRoundType.PreFlop)
+            {
+                ods = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
+            }
+            else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
                 ods = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    10000);
+                    5000);
             }
             else if (context.RoundType == GameRoundType.River)
             {
@@ -110,14 +114,15 @@
             }
             else
             {
+                //ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 // Accurate, really really slow
                 ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 
-            //var ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
+            //ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
-            if (merit < 1)
+            if (merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
                 {
@@ -125,6 +130,11 @@
                 }
 
                 return PlayerAction.Fold();
+            }
+
+            if (context.MyMoneyInTheRound > startMoney / 5)
+            {
+                return PlayerAction.CheckOrCall();
             }
 
             if (ods > .9 && context.MoneyLeft > 0)
