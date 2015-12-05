@@ -12,6 +12,7 @@
         private const int PlayerCardsCount = 2;
         private static readonly IList<Card> fullDeck = Deck.AllCards;
 
+        // Deprecated
         private static readonly int[,] StartingHandRecommendations =
             {
                 { 3, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1 }, // AA AKs AQs AJs ATs A9s A8s A7s A6s A5s A4s A3s A2s
@@ -59,6 +60,7 @@
             return value;
         }
 
+        // Deprecated
         // http://www.rakebackpros.net/texas-holdem-starting-hands/
         public static CardValuationType PreFlopLookupTable(Card firstCard, Card secondCard)
         {

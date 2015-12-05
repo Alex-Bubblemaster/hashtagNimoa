@@ -17,13 +17,43 @@
 
         private static int startMoney;
 
+        private static float roundOdds;
+
         public override string Name { get; } = "DaDummestPlayerEver_" + Guid.NewGuid();
 
         public override void StartRound(StartRoundContext context)
         {
-            //TODO: calculate ods here
+            if (context.RoundType == GameRoundType.PreFlop)
+            {
+                roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
+            }
+            else if (context.RoundType == GameRoundType.Flop)
+            {
+                // Approximation
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    5000);
+            }
+            else if (context.RoundType == GameRoundType.River)
+            {
+                // Fast
+                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+            }
+            else
+            {
+                // >1% inaccuracy
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    1000);
+                // Accurate, really really slow
+                // ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            }
+
             base.StartRound(context);
-            //context.CommunityCards
         }
 
         public override void StartGame(StartGameContext context)
@@ -55,71 +85,8 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            /*if (context.RoundType == GameRoundType.PreFlop)
-            {
-                var playHand = HandStrengthValuation.PreFlopLookupTable(this.FirstCard, this.SecondCard);
-                //||notrecomended
-                if (playHand == CardValuationType.Unplayable)
-                {
-                    if (context.CanCheck)
-                    {
-                        return PlayerAction.CheckOrCall();
-                    }
-                    else
-                    {
-                        return PlayerAction.Fold();
-                    }
-                }
-
-                //check total bid ammount
-                if (playHand == CardValuationType.Risky)
-                {
-                    var smallBlindsTimes = RandomProvider.Next(1, 8);
-                    return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-                }
-
-                if (playHand == CardValuationType.Recommended)
-                {
-                    var smallBlindsTimes = RandomProvider.Next(6, 14);
-                    return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
-                }
-
-                if (context.CanCheck)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                return PlayerAction.Fold();
-            }*/
-
             //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            float ods = 0;
-            if (context.RoundType == GameRoundType.PreFlop)
-            {
-                ods = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
-            }
-            else if (context.RoundType == GameRoundType.Flop)
-            {
-                // Approximation
-                ods = HandPotentialValuation.HandPotentialMonteCarloApproximation(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards,
-                    5000);
-            }
-            else if (context.RoundType == GameRoundType.River)
-            {
-                // Fast
-                ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }
-            else
-            {
-                //ods = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                // Accurate, really really slow
-                ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }
-
-            //ods = HandPotentialValuation.GetHandStrength(this.FirstCard, this.SecondCard, this.CommunityCards);
+            float ods = roundOdds;
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
             if (merit < 1 && context.CurrentPot > 0)
