@@ -61,8 +61,6 @@
             base.StartRound(context);
         }
 
-
-
         public override PlayerAction GetTurn(GetTurnContext context)
         {
             float ods = roundOdds;

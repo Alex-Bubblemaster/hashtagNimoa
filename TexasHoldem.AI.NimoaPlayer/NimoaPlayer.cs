@@ -19,6 +19,10 @@
 
         private static float roundOdds;
 
+        private static bool enemyAlwaysAllIn = true;
+
+        private static bool enemyAlwaysRise = true;
+
         public override string Name { get; } = "DaDummestPlayerEver_" + Guid.NewGuid();
 
         public override void StartRound(StartRoundContext context)
@@ -27,19 +31,24 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            /*else if (context.RoundType == GameRoundType.Flop)
+            else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    5000);
+                    250);
             }
             else if (context.RoundType == GameRoundType.River)
             {
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    250);
                 // Fast
-                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                //roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
@@ -48,15 +57,15 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    2000);
+                    250);
                 // Accurate, really really slow
                 //var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }*/
+            }
 
-            if (context.RoundType != GameRoundType.PreFlop)
+            /*if (context.RoundType != GameRoundType.PreFlop)
             {
                 roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }
+            }*/
 
             base.StartRound(context);
         }
@@ -94,6 +103,22 @@
             float ods = roundOdds;
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
+
+            if (context.PreviousRoundActions.Count > 0)
+            {
+                var enemyLastAction = context.PreviousRoundActions.Last().Action;
+                if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise)
+                {
+                    enemyAlwaysRise = false;
+                    enemyAlwaysAllIn = false;
+                }
+
+                if (enemyAlwaysAllIn && enemyLastAction.Money < startMoney - 2 * context.SmallBlind)
+                {
+                    enemyAlwaysAllIn = false;
+                }
+            }
+
             if (merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
