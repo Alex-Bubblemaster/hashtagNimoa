@@ -38,7 +38,14 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    250);
+                    300);
+
+                /* var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                 var accurate = HandPotentialValuation.GetHandPotential2(
+                     this.FirstCard,
+                     this.SecondCard,
+                     this.CommunityCards);
+                 var breakpoint = 0;*/
             }
             else if (context.RoundType == GameRoundType.River)
             {
@@ -46,7 +53,10 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    250);
+                    300);
+
+                /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                var breakpoint = 0;*/
                 // Fast
                 //roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
@@ -57,9 +67,14 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    250);
-                // Accurate, really really slow
-                //var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+                    300);
+
+                /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                var accurate = HandPotentialValuation.GetHandPotential2(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards);
+                var breakpoint = 0;*/
             }
 
             /*if (context.RoundType != GameRoundType.PreFlop)
@@ -104,22 +119,23 @@
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
 
+            var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
                 var enemyLastAction = context.PreviousRoundActions.Last().Action;
-                if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise)
+                if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
                 {
                     enemyAlwaysRise = false;
                     enemyAlwaysAllIn = false;
                 }
 
-                if (enemyAlwaysAllIn && enemyLastAction.Money < startMoney - 2 * context.SmallBlind)
+                if (enemyAlwaysAllIn && enemyLastAction.Money < enemyMoney)
                 {
                     enemyAlwaysAllIn = false;
                 }
             }
 
-            if (merit < 1 && context.CurrentPot > 0)
+            if (!enemyAlwaysAllIn && merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
                 {
@@ -131,7 +147,13 @@
 
             if (ods > .9 && context.MoneyLeft > 0)
             {
-                return PlayerAction.Raise(context.MoneyLeft);
+                var moneyToRaise = Math.Min(enemyMoney, context.MoneyLeft) + 1;
+                return PlayerAction.Raise(moneyToRaise);
+            }
+
+            if (enemyAlwaysAllIn && ods >= .6)
+            {
+                PlayerAction.CheckOrCall();
             }
 
             if (ods >= .6)
@@ -142,7 +164,8 @@
                 }
 
                 var smallBlindsTimes = RandomProvider.Next(6, 14);
-                return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
+                var moneyToRaise = Math.Min(context.SmallBlind * smallBlindsTimes, enemyMoney) + 1;
+                return PlayerAction.Raise(moneyToRaise);
             }
 
             if (ods > .5) // Risky
@@ -153,7 +176,8 @@
                 }
 
                 var smallBlindsTimes = RandomProvider.Next(1, 8);
-                return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
+                var moneyToRaise = Math.Min(context.SmallBlind * smallBlindsTimes, enemyMoney) + 1;
+                return PlayerAction.Raise(smallBlindsTimes);
             }
 
             if (merit > 1)
