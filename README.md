@@ -1,7 +1,7 @@
 # hashtagNimoa - Poker AI
 
-<img src="http://i.ebayimg.com/11/!BwOYqQwCGk~$(KGrHqUOKjcEve5QYT4eBMH9WHWGTQ~~_35.JPG" style="display: inline" width="150px"/>
-
+<img src="http://i.ebayimg.com/11/!BwOYqQwCGk~$(KGrHqUOKjcEve5QYT4eBMH9WHWGTQ~~_35.JPG" align=left width="120px"/>
+<hr/>
 We used a Monte Carlo algorithm for this project. A Monte Carlo simulation uses essentially random inputs (within realistic limits) to model the game and produces probable outcomes.
 Depending on the time that we are given for each turn, we can adjust the amount of random card combinations that are calculated and take it's representation for plausible probability.
 
