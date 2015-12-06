@@ -148,7 +148,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && ods >= 80)
+            if (enemyAlwaysAllIn && roundOdds >= 80)
             {
                 PlayerAction.Raise(context.SmallBlind);
             }
