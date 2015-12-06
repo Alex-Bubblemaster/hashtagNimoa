@@ -17,13 +17,17 @@
 
         private static float roundOdds;
 
+        private static bool enemyAlwaysRise = true;
+
+        private static bool enemyAlwaysAllIn = true;
+
         public override void StartRound(StartRoundContext context)
         {
             if (context.RoundType == GameRoundType.PreFlop)
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop)
+            /*else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
@@ -47,6 +51,11 @@
                     2000);
                 // Accurate, really really slow
                 // var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            }*/
+
+            if (context.RoundType != GameRoundType.PreFlop)
+            {
+                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 
             base.StartRound(context);
@@ -64,7 +73,12 @@
             if (context.PreviousRoundActions.Count > 0)
             {
                 var enemyLastAction = context.PreviousRoundActions.Last().Action;
-                if (enemyLastAction.Type == PlayerActionType.Raise)
+                if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise)
+                {
+                    enemyAlwaysRise = false;
+                }
+
+                if (!enemyAlwaysRise && enemyLastAction.Type == PlayerActionType.Raise)
                 {
                     if (enemyLastAction.Money > context.SmallBlind * 50)
                     {
@@ -103,36 +117,35 @@
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-            if (context.MyMoneyInTheRound > startMoney / 2)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods >= .7) // Recommended
             {
+                if (context.MyMoneyInTheRound > startMoney / 2)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var smallBlindsTimes = RandomProvider.Next(12, 26);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-            if (context.MyMoneyInTheRound > startMoney / 4)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods >= .6)
             {
+                if (context.MyMoneyInTheRound > startMoney / 4)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var smallBlindsTimes = RandomProvider.Next(6, 14);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
-
-            if (context.MyMoneyInTheRound > startMoney / 6)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods > .5) // Risky
             {
+                if (context.MyMoneyInTheRound > startMoney / 6)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var smallBlindsTimes = RandomProvider.Next(1, 8);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }

@@ -27,7 +27,7 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop)
+            /*else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
@@ -51,6 +51,11 @@
                     2000);
                 // Accurate, really really slow
                 //var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            }*/
+
+            if (context.RoundType != GameRoundType.PreFlop)
+            {
+                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
 
             base.StartRound(context);
@@ -99,11 +104,6 @@
                 return PlayerAction.Fold();
             }
 
-            if (context.MyMoneyInTheRound > startMoney / 5)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
             if (ods > .9 && context.MoneyLeft > 0)
             {
                 return PlayerAction.Raise(context.MoneyLeft);
@@ -111,12 +111,22 @@
 
             if (ods >= .6)
             {
+                if (context.MyMoneyInTheRound > startMoney / 4)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var smallBlindsTimes = RandomProvider.Next(6, 14);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
 
             if (ods > .5) // Risky
             {
+                if (context.MyMoneyInTheRound > startMoney / 6)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var smallBlindsTimes = RandomProvider.Next(1, 8);
                 return PlayerAction.Raise(context.SmallBlind * smallBlindsTimes);
             }
@@ -127,7 +137,7 @@
             }
 
             // fcsk it
-            if (context.CanCheck || context.MoneyToCall <= 2)
+            if (context.CanCheck || context.MoneyToCall <= context.SmallBlind)
             {
                 return PlayerAction.CheckOrCall();
             }
