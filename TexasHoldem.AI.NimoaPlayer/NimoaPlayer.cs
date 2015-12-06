@@ -38,7 +38,7 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    300);
+                    250);
 
                 /* var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                  var accurate = HandPotentialValuation.GetHandPotential2(
@@ -53,7 +53,7 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    300);
+                    250);
 
                 /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var breakpoint = 0;*/
@@ -67,7 +67,7 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    300);
+                    250);
 
                 /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var accurate = HandPotentialValuation.GetHandPotential2(
@@ -129,7 +129,7 @@
                     enemyAlwaysAllIn = false;
                 }
 
-                if (enemyAlwaysAllIn && enemyLastAction.Money < enemyMoney)
+                if (enemyAlwaysAllIn && enemyLastAction.Money < enemyMoney && enemyLastAction.Money > context.SmallBlind)
                 {
                     enemyAlwaysAllIn = false;
                 }
@@ -151,9 +151,9 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && ods >= .6)
+            if (enemyAlwaysAllIn && merit >= 1)
             {
-                PlayerAction.CheckOrCall();
+                PlayerAction.Raise(1);
             }
 
             if (ods >= .6)
@@ -177,7 +177,7 @@
 
                 var smallBlindsTimes = RandomProvider.Next(1, 8);
                 var moneyToRaise = Math.Min(context.SmallBlind * smallBlindsTimes, enemyMoney) + 1;
-                return PlayerAction.Raise(smallBlindsTimes);
+                return PlayerAction.Raise(moneyToRaise);
             }
 
             if (merit > 1)
