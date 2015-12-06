@@ -148,9 +148,9 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && merit >= 1)
+            if (enemyAlwaysAllIn && ods >= 80)
             {
-                PlayerAction.Raise(1);
+                PlayerAction.Raise(context.SmallBlind);
             }
 
             if (roundOdds >= .6)
