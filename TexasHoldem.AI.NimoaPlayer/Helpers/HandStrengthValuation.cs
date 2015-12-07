@@ -62,15 +62,15 @@
             }
 
             var oponentCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, PlayerCardsCount);
-            //var oponentCardsVariants2=new List<Card[]>();
-            //CardsCombinations.CombinationsNoRepetitions(0, 0, remainingCasrds, PlayerCardsCount, oponentCardsVariants2, new Card[2]);
+            ////var oponentCardsVariants2=new List<Card[]>();
+            ////CardsCombinations.CombinationsNoRepetitions(0, 0, remainingCasrds, PlayerCardsCount, oponentCardsVariants2, new Card[2]);
 
             foreach (var variant in oponentCardsVariants)
             {
                 // TODO: evaluate our rank only once
                 BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(variant.Concat(boardCards));
                 int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
-                // int handsComparisonResult = Helpers.CompareCards(ourHandsCards, variant.Concat(boardCards));
+                //// int handsComparisonResult = Helpers.CompareCards(ourHandsCards, variant.Concat(boardCards));
                 if (handsComparisonResult > 0)
                 {
                     ahead++;

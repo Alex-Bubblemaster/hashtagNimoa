@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Security.Authentication;
 
     using TexasHoldem.AI.NimoaPlayer.Helpers;
     using TexasHoldem.Logic;
@@ -55,8 +54,8 @@
 
                 /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var breakpoint = 0;*/
-                // Fast
-                //roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                //// Fast
+                ////roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
@@ -112,7 +111,7 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            ////var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
 
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
             var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
@@ -148,19 +147,19 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && ods >= .8)
+            if (enemyAlwaysAllIn && roundOdds >= .8)
             {
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (ods >= .8) // Recommended
+            if (roundOdds >= .8) //// Recommended
             {
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (ods >= .7) // Recommended
+            if (roundOdds >= .7) //// Recommended
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {
@@ -172,7 +171,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (ods >= .6)
+            if (roundOdds >= .6)
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
                 {
@@ -184,7 +183,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds > .5) // Risky
+            if (roundOdds > .5) //// Risky
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
