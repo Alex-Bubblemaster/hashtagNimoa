@@ -11,8 +11,6 @@
 
     public class NimoaPlayer : BasePlayer
     {
-        private static float roundOds;
-
         private static int gamesCount = 0;
 
         private static int startMoney;
@@ -115,14 +113,13 @@
         public override PlayerAction GetTurn(GetTurnContext context)
         {
             //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            float ods = roundOdds;
 
-            var merit = ods * context.CurrentPot / context.MoneyToCall;
+            var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
+            var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
 
-            var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
+            var enemyMoney = (startMoney * 2) - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
-                var enemyLastAction = context.PreviousRoundActions.Last().Action;
                 if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
                 {
                     enemyAlwaysRise = false;
@@ -145,7 +142,7 @@
                 return PlayerAction.Fold();
             }
 
-            if (ods > .9 && context.MoneyLeft > 0)
+            if (roundOdds > .9 && context.MoneyLeft > 0)
             {
                 var moneyToRaise = Math.Min(enemyMoney, context.MoneyLeft) + 1;
                 return PlayerAction.Raise(moneyToRaise);
@@ -187,7 +184,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (ods > .5) // Risky
+            if (roundOdds > .5) // Risky
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
