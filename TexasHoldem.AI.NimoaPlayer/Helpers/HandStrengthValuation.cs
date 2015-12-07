@@ -106,26 +106,19 @@
             var cardsCombinations =
                 CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
 
-            // fast delete
-            var combinationsDictionary = new Dictionary<int, ICollection<Card>>();
-
-            for (int i = 0; i < cardsCombinations.Count; i++)
-            {
-                combinationsDictionary.Add(i, cardsCombinations[i]);
-            }
-
             int ahead = 0, tied = 0, behind = 0;
             BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
+            var usedOpponentVariantsIndexes=new HashSet<int>();
             for (int i = 0; i < variants; i++)
             {
                 int randomIndex = RandomGenerator.RandomInt(0, cardsCombinations.Count);
-                while (!combinationsDictionary.ContainsKey(randomIndex))
+                while (usedOpponentVariantsIndexes.Contains(randomIndex))
                 {
                     randomIndex = RandomGenerator.RandomInt(0, cardsCombinations.Count);
                 }
 
-                BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(combinationsDictionary[randomIndex].Concat(boardCards));
-                combinationsDictionary.Remove(randomIndex);
+                BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(cardsCombinations[randomIndex].Concat(boardCards));
+                usedOpponentVariantsIndexes.Add(randomIndex);
 
                 int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
                 if (handsComparisonResult > 0)

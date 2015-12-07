@@ -28,7 +28,7 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop)
+            else if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.Turn)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
@@ -36,13 +36,6 @@
                     this.SecondCard,
                     this.CommunityCards,
                     250);
-
-                 /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                 var accurate = HandPotentialValuation.GetHandPotential2(
-                     this.FirstCard,
-                     this.SecondCard,
-                     this.CommunityCards);
-                 var breakpoint = 0;*/
             }
             else if (context.RoundType == GameRoundType.River)
             {
@@ -50,34 +43,8 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    400);
-
-                /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                var breakpoint = 0;*/
-                //// Fast
-                ////roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                    500);
             }
-            else
-            {
-                // >1% inaccuracy
-                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards,
-                    250);
-
-                /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                var accurate = HandPotentialValuation.GetHandPotential2(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards);
-                var breakpoint = 0;*/
-            }
-
-            /*if (context.RoundType != GameRoundType.PreFlop)
-            {
-                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }*/
 
             base.StartRound(context);
         }
@@ -89,38 +56,15 @@
             startMoney = context.StartMoney;
         }
 
-        /*public override void StartHand(StartHandContext context)
-        {
-            base.StartHand(context);
-        }
-
-        public override void EndRound(EndRoundContext context)
-        {
-            base.EndRound(context);
-        }
-
-        public override void EndHand(EndHandContext context)
-        {
-            base.EndHand(context);
-        }
-
-        public override void EndGame(EndGameContext context)
-        {
-            base.EndGame(context);
-        }*/
-
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            ////var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
-            
 
             var enemyMoney = (startMoney * 2) - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
-                var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
-                //var enemyLastAction = context.PreviousRoundActions.Last().Action;
+                //var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
+                var enemyLastAction = context.PreviousRoundActions.Last().Action;
 
                 if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
                 {

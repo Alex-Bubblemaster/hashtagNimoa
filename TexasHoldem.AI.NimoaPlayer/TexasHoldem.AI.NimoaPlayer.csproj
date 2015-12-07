@@ -40,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\CardsCombinations.cs" />
-    <Compile Include="Helpers\CardValuationType.cs" />
     <Compile Include="Helpers\HandPotentialValuation.cs" />
     <Compile Include="Helpers\HandStrengthValuation.cs" />
     <Compile Include="Helpers\RandomGenerator.cs" />

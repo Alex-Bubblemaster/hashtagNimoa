@@ -180,9 +180,13 @@
 
                 var opponentCards = enemydCardsVariants[randomOpponentCardsIndex];
                 var newPublicCards = boardCardsVariants[randomBoardIndex];
-                if (newPublicCards.Contains(opponentCards[0]) || newPublicCards.Contains(opponentCards[1]))
+                while (newPublicCards.Contains(opponentCards[0]) || newPublicCards.Contains(opponentCards[1]))
                 {
-                    continue;
+                    randomBoardIndex = RandomGenerator.RandomInt(0, boardCardsVariants.Count);
+                    randomOpponentCardsIndex = RandomGenerator.RandomInt(0, enemydCardsVariants.Count);
+
+                    opponentCards = enemydCardsVariants[randomOpponentCardsIndex];
+                    newPublicCards = boardCardsVariants[randomBoardIndex];
                 }
 
                 usedOpponentCarsdIndex.Add(randomOpponentCardsIndex);
