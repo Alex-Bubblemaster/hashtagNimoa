@@ -20,7 +20,7 @@
 
         private static bool enemyAlwaysRise = true;
 
-        public override string Name { get; } = "DaDummestPlayerEver_" + Guid.NewGuid();
+        public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
 
         public override void StartRound(StartRoundContext context)
         {
@@ -36,13 +36,6 @@
                     this.SecondCard,
                     this.CommunityCards,
                     250);
-
-                 /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                 var accurate = HandPotentialValuation.GetHandPotential2(
-                     this.FirstCard,
-                     this.SecondCard,
-                     this.CommunityCards);
-                 var breakpoint = 0;*/
             }
             else if (context.RoundType == GameRoundType.River)
             {
@@ -51,33 +44,15 @@
                     this.SecondCard,
                     this.CommunityCards,
                     400);
-
-                /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                var breakpoint = 0;*/
-                //// Fast
-                ////roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
-                // >1% inaccuracy
                 roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
                     250);
-
-                /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-                var accurate = HandPotentialValuation.GetHandPotential2(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards);
-                var breakpoint = 0;*/
             }
-
-            /*if (context.RoundType != GameRoundType.PreFlop)
-            {
-                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }*/
 
             base.StartRound(context);
         }
@@ -89,38 +64,14 @@
             startMoney = context.StartMoney;
         }
 
-        /*public override void StartHand(StartHandContext context)
-        {
-            base.StartHand(context);
-        }
-
-        public override void EndRound(EndRoundContext context)
-        {
-            base.EndRound(context);
-        }
-
-        public override void EndHand(EndHandContext context)
-        {
-            base.EndHand(context);
-        }
-
-        public override void EndGame(EndGameContext context)
-        {
-            base.EndGame(context);
-        }*/
-
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            ////var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
-            
-
             var enemyMoney = (startMoney * 2) - context.MoneyLeft - context.CurrentPot;
+
             if (context.PreviousRoundActions.Count > 0)
             {
-                var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
-                //var enemyLastAction = context.PreviousRoundActions.Last().Action;
+                var enemyLastAction = context.PreviousRoundActions.Last().Action;
 
                 if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
                 {
@@ -155,14 +106,14 @@
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (roundOdds >= .8) // Recommended
+            if (roundOdds >= .8) //// Recommended
             {
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds >= .7) // Recommended
+            if (roundOdds >= .7) //// Recommended
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {

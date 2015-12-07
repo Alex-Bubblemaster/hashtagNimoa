@@ -1,6 +1,5 @@
 namespace TexasHoldem.AI.NimoaPlayer.Helpers
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -8,26 +7,7 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
 
     public static class CardsCombinations
     {
-        public static void CombinationsNoRepetitions(int index, int start, List<Card> remainingCards, int variantCardsCount, List<Card[]> result, Card[] currentCombination)
-        {
-            //var arr = new Card[variantCardsCount];
-            if (index >= variantCardsCount)
-            {
-                result.Add(currentCombination);
-                //currentCombination = new Card[variantCardsCount];
-                return;
-            }
-            else
-            {
-                for (int i = start; i < remainingCards.Count; i++)
-                {
-                    currentCombination[index] = remainingCards[i];
-                    CombinationsNoRepetitions(index + 1, i + 1, remainingCards, variantCardsCount, result, currentCombination.ToArray());
-                }
-            }
-        }
-
-        // Source: http://rosettacode.org/wiki/Combinations
+         // Source: http://rosettacode.org/wiki/Combinations
         // TODO: Just generate card indexes
         public static IEnumerable<Card[]> CombinationsNoRepetitionsIterative(List<Card> remainingCards, int variantCardsCount)
         {

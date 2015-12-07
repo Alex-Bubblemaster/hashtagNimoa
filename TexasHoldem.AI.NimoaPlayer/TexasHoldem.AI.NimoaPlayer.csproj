@@ -5,7 +5,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{15846908-6F41-496A-A0C7-D6D564CAD6D0}</ProjectGuid>
+    <ProjectGuid>{2824E07A-E5C5-4D8F-9636-D055FB973BA7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TexasHoldem.AI.NimoaPlayer</RootNamespace>
@@ -40,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\CardsCombinations.cs" />
-    <Compile Include="Helpers\CardValuationType.cs" />
     <Compile Include="Helpers\HandPotentialValuation.cs" />
     <Compile Include="Helpers\HandStrengthValuation.cs" />
     <Compile Include="Helpers\RandomGenerator.cs" />
@@ -48,7 +47,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\poker engine fork\TexasHoldemGameEngine\Source\TexasHoldem.Logic\TexasHoldem.Logic.csproj">
+    <ProjectReference Include="..\..\..\eng\TexasHoldemGameEngine\Source\TexasHoldem.Logic\TexasHoldem.Logic.csproj">
       <Project>{bcf99e8b-2025-444f-83c7-24542fcf33df}</Project>
       <Name>TexasHoldem.Logic</Name>
     </ProjectReference>
