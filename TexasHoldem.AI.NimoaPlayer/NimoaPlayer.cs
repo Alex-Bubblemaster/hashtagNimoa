@@ -20,7 +20,7 @@
 
         private static bool enemyAlwaysRise = true;
 
-        public override string Name { get; } = "DaDummestPlayerEver_" + Guid.NewGuid();
+        public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
 
         public override void StartRound(StartRoundContext context)
         {
@@ -28,16 +28,16 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.Turn)
+            else if (context.RoundType == GameRoundType.Flop|| context.RoundType == GameRoundType.Turn)
             {
                 // Approximation
-                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
                     250);
             }
-            else if (context.RoundType == GameRoundType.River)
+            else
             {
                 roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation(
                     this.FirstCard,
@@ -60,10 +60,9 @@
         {
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
 
-            var enemyMoney = (startMoney * 2) - context.MoneyLeft - context.CurrentPot;
+            var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
-                //var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
                 var enemyLastAction = context.PreviousRoundActions.Last().Action;
 
                 if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
@@ -99,14 +98,14 @@
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (roundOdds >= .8) // Recommended
+            if (roundOdds >= .8) //// Recommended
             {
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds >= .7) // Recommended
+            if (roundOdds >= .7) //// Recommended
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {

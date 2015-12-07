@@ -91,8 +91,8 @@
             IEnumerable<Card> boardCards,
             int variants)
         {
-            // Assume boardCards>=3
-            var ourHandsCards = boardCards.ToList(); // ours + comunity cards
+            // Assume boardCards >= 3 Create a list with ours + comunity cards
+            var ourHandsCards = boardCards.ToList();
             ourHandsCards.Add(firstCard);
             ourHandsCards.Add(secondCard);
 
