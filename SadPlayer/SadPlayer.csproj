@@ -44,7 +44,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TexasHoldem.Logic\TexasHoldem.Logic.csproj">
+    <ProjectReference Include="..\..\..\poker engine fork\TexasHoldemGameEngine\Source\TexasHoldem.Logic\TexasHoldem.Logic.csproj">
       <Project>{bcf99e8b-2025-444f-83c7-24542fcf33df}</Project>
       <Name>TexasHoldem.Logic</Name>
     </ProjectReference>

@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Security.Authentication;
 
     using TexasHoldem.AI.NimoaPlayer.Helpers;
     using TexasHoldem.Logic;
@@ -55,8 +54,8 @@
 
                 /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var breakpoint = 0;*/
-                // Fast
-                //roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                //// Fast
+                ////roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
@@ -112,7 +111,7 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
+            ////var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
 
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
             
@@ -187,7 +186,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds > .5) // Risky
+            if (roundOdds > .5) //// Risky
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
