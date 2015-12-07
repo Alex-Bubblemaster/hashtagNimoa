@@ -28,30 +28,22 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop)
+            else if (context.RoundType == GameRoundType.Flop|| context.RoundType == GameRoundType.Turn)
             {
                 // Approximation
-                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
                     250);
             }
-            else if (context.RoundType == GameRoundType.River)
+            else
             {
                 roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
                     400);
-            }
-            else
-            {
-                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards,
-                    250);
             }
 
             base.StartRound(context);
