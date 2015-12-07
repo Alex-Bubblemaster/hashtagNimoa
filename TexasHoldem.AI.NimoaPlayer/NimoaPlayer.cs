@@ -31,7 +31,7 @@
             else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
-                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
@@ -46,11 +46,11 @@
             }
             else if (context.RoundType == GameRoundType.River)
             {
-                roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation2(
+                roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    500);
+                    400);
 
                 /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var breakpoint = 0;*/
@@ -60,7 +60,7 @@
             else
             {
                 // >1% inaccuracy
-                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                roundOdds = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,

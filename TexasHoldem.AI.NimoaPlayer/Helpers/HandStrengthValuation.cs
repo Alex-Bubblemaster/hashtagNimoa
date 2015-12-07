@@ -85,56 +85,7 @@
             return chances;
         }
 
-        public static float HandStrengthMonteCarloApproximation(Card firstCard, Card secondCard, IEnumerable<Card> boardCards, int variants)
-        {
-            int ahead = 0, tied = 0, behind = 0;
-
-            // Assume boardCards>=3
-            var ourHandsCards = boardCards.ToList(); // ours + comunity cards
-            ourHandsCards.Add(firstCard);
-            ourHandsCards.Add(secondCard);
-
-            BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
-            var remainingCards = FullDeck.ToList();
-
-            foreach (var card in ourHandsCards)
-            {
-                remainingCards.Remove(card);
-            }
-
-            var cardsCombinations = CardsCombinations.GetRandomCardsIndexes(variants, 2, remainingCards.Count);
-
-            foreach (var cardsCombination in cardsCombinations)
-            {
-                var enemyCombination = boardCards.ToList();
-                foreach (var card in cardsCombination)
-                {
-                    enemyCombination.Add(FullDeck[card]);
-                }
-
-                BestHand enemyBestHand = HandEvaluator.GetBestHand(enemyCombination);
-
-                int handsComparisonResult = ourBestHand.CompareTo(enemyBestHand);
-                if (handsComparisonResult > 0)
-                {
-                    ahead++;
-                }
-                else if (handsComparisonResult == 0)
-                {
-                    tied++;
-                }
-                else
-                {
-                    behind++;
-                }
-            }
-
-            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
-
-            return chances;
-        }
-
-        public static float HandStrengthMonteCarloApproximation2(
+        public static float HandStrengthMonteCarloApproximation(
             Card firstCard,
             Card secondCard,
             IEnumerable<Card> boardCards,
