@@ -27,19 +27,34 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            /*else if (context.RoundType == GameRoundType.Flop)
+            else if (context.RoundType == GameRoundType.Flop)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    5000);
+                    250);
+
+                /* var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                 var accurate = HandPotentialValuation.GetHandPotential2(
+                     this.FirstCard,
+                     this.SecondCard,
+                     this.CommunityCards);
+                 var breakpoint = 0;*/
             }
             else if (context.RoundType == GameRoundType.River)
             {
+                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    250);
+
+                /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                var breakpoint = 0;*/
                 // Fast
-                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                //roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
             }
             else
             {
@@ -48,14 +63,14 @@
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    2000);
-                // Accurate, really really slow
-                // var ods = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
-            }*/
+                    250);
 
-            if (context.RoundType != GameRoundType.PreFlop)
-            {
-                roundOdds = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                var accurate = HandPotentialValuation.GetHandPotential2(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards);
+                var breakpoint = 0;*/
             }
 
             base.StartRound(context);

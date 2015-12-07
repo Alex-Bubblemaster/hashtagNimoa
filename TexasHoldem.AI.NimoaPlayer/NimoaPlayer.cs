@@ -151,32 +151,51 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && ods >= 80)
+            if (enemyAlwaysAllIn && ods >= .8)
             {
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (ods >= .6)
+            if (ods >= .8) // Recommended
             {
-                if (context.MyMoneyInTheRound > startMoney / 4)
+                var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
+                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
+                return PlayerAction.Raise(moneyToRaise);
+            }
+
+            if (ods >= .7) // Recommended
+            {
+                if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {
                     return PlayerAction.CheckOrCall();
                 }
 
-                var smallBlindsTimes = RandomProvider.Next(6, 14);
-                var moneyToRaise = Math.Min(context.SmallBlind * smallBlindsTimes, enemyMoney) + 1;
+                var maxBet = context.MoneyLeft / RandomProvider.Next(3, 8);
+                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
+                return PlayerAction.Raise(moneyToRaise);
+            }
+
+            if (ods >= .6)
+            {
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
+                var maxBet = context.MoneyLeft / RandomProvider.Next(6, 14);
+                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
             if (ods > .5) // Risky
             {
-                if (context.MyMoneyInTheRound > startMoney / 6)
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
                     return PlayerAction.CheckOrCall();
                 }
 
-                var smallBlindsTimes = RandomProvider.Next(1, 8);
-                var moneyToRaise = Math.Min(context.SmallBlind * smallBlindsTimes, enemyMoney) + 1;
+                var maxBet = context.MoneyLeft / RandomProvider.Next(12, 24);
+                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 

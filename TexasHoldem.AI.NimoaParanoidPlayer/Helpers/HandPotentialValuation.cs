@@ -254,8 +254,11 @@
             {
                 var publicCardsVariant = boardCards.ToList();
 
-                publicCardsVariant.Add(remainingCards[cardVariation[2]]);
-                if (boardCards.Count() == 3)
+                if (boardCards.Count() < 5)
+                {
+                    publicCardsVariant.Add(remainingCards[cardVariation[2]]);
+                }
+                else if (boardCards.Count() == 3)
                 {
                     publicCardsVariant.Add(remainingCards[cardVariation[3]]);
                 }
