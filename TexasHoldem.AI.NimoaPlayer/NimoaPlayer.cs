@@ -38,7 +38,7 @@
                     this.CommunityCards,
                     250);
 
-                /* var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
+                 /*var handStrenght = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                  var accurate = HandPotentialValuation.GetHandPotential2(
                      this.FirstCard,
                      this.SecondCard,
@@ -47,11 +47,11 @@
             }
             else if (context.RoundType == GameRoundType.River)
             {
-                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation2(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
-                    250);
+                    500);
 
                 /*var accurate = HandStrengthValuation.PostFlop(this.FirstCard, this.SecondCard, this.CommunityCards);
                 var breakpoint = 0;*/
@@ -115,11 +115,14 @@
             //var comparison = HandPotentialValuation.GetHandPotential2(this.FirstCard, this.SecondCard, this.CommunityCards);
 
             var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
-            var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
+            
 
             var enemyMoney = (startMoney * 2) - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
+                var enemyLastAction = context.PreviousRoundActions.Where(x => x.PlayerName != this.Name).LastOrDefault().Action;
+                //var enemyLastAction = context.PreviousRoundActions.Last().Action;
+
                 if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
                 {
                     enemyAlwaysRise = false;
@@ -148,19 +151,19 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && ods >= .8)
+            if (enemyAlwaysAllIn && roundOdds >= .8)
             {
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (ods >= .8) // Recommended
+            if (roundOdds >= .8) // Recommended
             {
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (ods >= .7) // Recommended
+            if (roundOdds >= .7) // Recommended
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {
@@ -172,7 +175,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (ods >= .6)
+            if (roundOdds >= .6)
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
                 {

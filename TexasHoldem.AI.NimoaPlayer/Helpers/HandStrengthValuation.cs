@@ -43,7 +43,6 @@
             return value;
         }
 
-        // TODO: generate all board variants or use hand potential algorithm
         public static float PostFlop(Card firstCard, Card secondCard, IEnumerable<Card> boardCards)
         {
             int ahead = 0, tied = 0, behind = 0;
@@ -62,15 +61,11 @@
             }
 
             var oponentCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, PlayerCardsCount);
-            //var oponentCardsVariants2=new List<Card[]>();
-            //CardsCombinations.CombinationsNoRepetitions(0, 0, remainingCasrds, PlayerCardsCount, oponentCardsVariants2, new Card[2]);
 
             foreach (var variant in oponentCardsVariants)
             {
-                // TODO: evaluate our rank only once
                 BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(variant.Concat(boardCards));
                 int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
-                // int handsComparisonResult = Helpers.CompareCards(ourHandsCards, variant.Concat(boardCards));
                 if (handsComparisonResult > 0)
                 {
                     ahead++;
@@ -88,6 +83,115 @@
             float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
 
             return chances;
+        }
+
+        public static float HandStrengthMonteCarloApproximation(Card firstCard, Card secondCard, IEnumerable<Card> boardCards, int variants)
+        {
+            int ahead = 0, tied = 0, behind = 0;
+
+            // Assume boardCards>=3
+            var ourHandsCards = boardCards.ToList(); // ours + comunity cards
+            ourHandsCards.Add(firstCard);
+            ourHandsCards.Add(secondCard);
+
+            BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
+            var remainingCards = FullDeck.ToList();
+
+            foreach (var card in ourHandsCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            var cardsCombinations = CardsCombinations.GetRandomCardsIndexes(variants, 2, remainingCards.Count);
+
+            foreach (var cardsCombination in cardsCombinations)
+            {
+                var enemyCombination = boardCards.ToList();
+                foreach (var card in cardsCombination)
+                {
+                    enemyCombination.Add(FullDeck[card]);
+                }
+
+                BestHand enemyBestHand = HandEvaluator.GetBestHand(enemyCombination);
+
+                int handsComparisonResult = ourBestHand.CompareTo(enemyBestHand);
+                if (handsComparisonResult > 0)
+                {
+                    ahead++;
+                }
+                else if (handsComparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+
+            return chances;
+        }
+
+        public static float HandStrengthMonteCarloApproximation2(
+            Card firstCard,
+            Card secondCard,
+            IEnumerable<Card> boardCards,
+            int variants)
+        {
+            // Assume boardCards>=3
+            var ourHandsCards = boardCards.ToList(); // ours + comunity cards
+            ourHandsCards.Add(firstCard);
+            ourHandsCards.Add(secondCard);
+
+            var remainingCards = FullDeck.ToList();
+
+            foreach (var card in ourHandsCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            var cardsCombinations =
+                CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
+
+            // fast delete
+            var combinationsDictionary = new Dictionary<int, ICollection<Card>>();
+
+            for (int i = 0; i < cardsCombinations.Count; i++)
+            {
+                combinationsDictionary.Add(i, cardsCombinations[i]);
+            }
+
+            int ahead = 0, tied = 0, behind = 0;
+            BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
+            for (int i = 0; i < variants; i++)
+            {
+                int randomIndex = RandomGenerator.RandomInt(0, cardsCombinations.Count);
+                while (!combinationsDictionary.ContainsKey(randomIndex))
+                {
+                    randomIndex = RandomGenerator.RandomInt(0, cardsCombinations.Count);
+                }
+
+                BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(combinationsDictionary[randomIndex].Concat(boardCards));
+                combinationsDictionary.Remove(randomIndex);
+
+                int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
+                if (handsComparisonResult > 0)
+                {
+                    ahead++;
+                }
+                else if (handsComparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            return (ahead + ((float)tied / 2)) / (ahead + tied + behind);
         }
     }
 }

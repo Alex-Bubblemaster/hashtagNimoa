@@ -8,8 +8,6 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
 
     public static class CardsCombinations
     {
-        private static Random random = new Random();
-
         public static void CombinationsNoRepetitions(int index, int start, List<Card> remainingCards, int variantCardsCount, List<Card[]> result, Card[] currentCombination)
         {
             //var arr = new Card[variantCardsCount];
@@ -65,7 +63,7 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
                 var variant = new HashSet<int>();
                 while (variant.Count < cardsCount)
                 {
-                    variant.Add(random.Next(0, maxIndex + 1));
+                    variant.Add(RandomGenerator.RandomInt(0, maxIndex + 1));
                 }
 
                 var countBeforeAdd = uniqueCheck.Count;
