@@ -1,6 +1,7 @@
 ﻿namespace TexasHoldem.AI.NimoaPlayer
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using TexasHoldem.AI.NimoaPlayer.Helpers;
@@ -20,7 +21,17 @@
 
         private static bool enemyAlwaysRise = true;
 
+        private static Dictionary<int, List<int>> betsPer10Rounds = new Dictionary<int, List<int>>();
+
+        private static int handNumber;
+
         public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
+
+        public override void StartHand(StartHandContext context)
+        {
+            base.StartHand(context);
+            handNumber = context.HandNumber;
+        }
 
         public override void StartRound(StartRoundContext context)
         {
@@ -28,7 +39,7 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop|| context.RoundType == GameRoundType.Turn)
+            else if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.Turn)
             {
                 // Approximation
                 roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
@@ -58,7 +69,7 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
-            var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
+            var ods = roundOdds;
 
             var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
@@ -75,7 +86,46 @@
                 {
                     enemyAlwaysAllIn = false;
                 }
+
+                if (!enemyAlwaysRise && !enemyAlwaysAllIn && enemyLastAction.Type == PlayerActionType.Raise)
+                {
+                    if (!betsPer10Rounds.ContainsKey(context.SmallBlind))
+                    {
+                        betsPer10Rounds[context.SmallBlind] = new List<int>();
+                    }
+
+                    var recentBets = betsPer10Rounds[context.SmallBlind];
+
+
+                    if (recentBets.Count > 30)
+                    {
+                        var averageBet = recentBets.Sum() / recentBets.Count;
+
+                        var maxBet = recentBets.Max();
+
+                        if (enemyLastAction.Money >= maxBet * .7)
+                        {
+                            ods -= .15f;
+                        }
+                        else if (enemyLastAction.Money > averageBet)
+                        {
+                            ods -= .1f;
+                        }
+                        else if (enemyLastAction.Money > averageBet / 2)
+                        {
+                            ods -= .05f;
+                        }
+                    }
+
+                    if (enemyLastAction.Money > context.SmallBlind * 2)
+                    {
+                        recentBets.Add(enemyLastAction.Money);
+                    }
+                }
             }
+
+
+            var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
 
             if (!enemyAlwaysAllIn && merit < 1 && context.CurrentPot > 0)
             {
@@ -87,7 +137,7 @@
                 return PlayerAction.Fold();
             }
 
-            if (roundOdds > .9 && context.MoneyLeft > 0)
+            if (ods > .9 && context.MoneyLeft > 0)
             {
                 var moneyToRaise = Math.Min(enemyMoney, context.MoneyLeft) + 1;
                 return PlayerAction.Raise(moneyToRaise);
@@ -98,14 +148,14 @@
                 PlayerAction.Raise(context.SmallBlind);
             }
 
-            if (roundOdds >= .8) //// Recommended
+            if (ods >= .8) //// Recommended
             {
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds >= .7) //// Recommended
+            if (ods >= .7) //// Recommended
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft)
                 {
@@ -117,7 +167,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds >= .6)
+            if (ods >= .6)
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
                 {
@@ -129,7 +179,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (roundOdds > .5) //// Risky
+            if (ods > .5) //// Risky
             {
                 if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
@@ -147,7 +197,7 @@
             }
 
             // fcsk it
-            if (context.CanCheck || context.MoneyToCall <= context.SmallBlind)
+            if (context.CanCheck) // || (context.MoneyToCall <= context.SmallBlind && context.SmallBlind < context.MoneyLeft / 15)
             {
                 return PlayerAction.CheckOrCall();
             }
