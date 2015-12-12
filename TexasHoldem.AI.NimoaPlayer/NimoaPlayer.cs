@@ -25,6 +25,8 @@
 
         private static int handNumber;
 
+        private static List<float> oddsForThisRound;
+
         public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
 
         public override void StartHand(StartHandContext context)
@@ -39,10 +41,23 @@
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
             }
-            else if (context.RoundType == GameRoundType.Flop || context.RoundType == GameRoundType.Turn)
+            else
+            {
+                oddsForThisRound = new List<float>();
+                GetAverageOdds(context.RoundType);
+            }
+
+            base.StartRound(context);
+        }
+
+        // LassVegas method (slow)
+        public float GetAverageOdds(GameRoundType roundType)
+        {
+            float ods;
+            if (roundType == GameRoundType.Flop || roundType == GameRoundType.Turn)
             {
                 // Approximation
-                roundOdds = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                ods = HandPotentialValuation.HandPotentialMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
@@ -50,14 +65,16 @@
             }
             else
             {
-                roundOdds = HandStrengthValuation.HandStrengthMonteCarloApproximation(
+                ods = HandStrengthValuation.HandStrengthMonteCarloApproximation(
                     this.FirstCard,
                     this.SecondCard,
                     this.CommunityCards,
                     500);
             }
 
-            base.StartRound(context);
+            oddsForThisRound.Add(ods);
+            roundOdds = oddsForThisRound.Average();
+            return roundOdds;
         }
 
         public override void StartGame(StartGameContext context)
@@ -69,6 +86,16 @@
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
+            if (context.MoneyLeft == 0)
+            {
+                return PlayerAction.CheckOrCall();
+            }
+
+            if (context.RoundType != GameRoundType.PreFlop)
+            {
+                GetAverageOdds(context.RoundType);
+            }
+
             var ods = roundOdds;
 
             var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
@@ -99,7 +126,7 @@
 
                     if (recentBets.Count > 30)
                     {
-                        var averageBet = recentBets.Sum() / recentBets.Count;
+                        var averageBet = recentBets.Average();
 
                         var maxBet = recentBets.Max();
 
@@ -150,6 +177,11 @@
 
             if (ods >= .8) //// Recommended
             {
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
+                {
+                    return PlayerAction.CheckOrCall();
+                }
+
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
@@ -157,7 +189,7 @@
 
             if (ods >= .7) //// Recommended
             {
-                if (context.MyMoneyInTheRound > context.MoneyLeft)
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 3)
                 {
                     return PlayerAction.CheckOrCall();
                 }
@@ -169,7 +201,7 @@
 
             if (ods >= .6)
             {
-                if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
                 {
                     return PlayerAction.CheckOrCall();
                 }
@@ -181,7 +213,7 @@
 
             if (ods > .5) //// Risky
             {
-                if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
+                if (context.MyMoneyInTheRound > context.MoneyLeft / 5)
                 {
                     return PlayerAction.CheckOrCall();
                 }
