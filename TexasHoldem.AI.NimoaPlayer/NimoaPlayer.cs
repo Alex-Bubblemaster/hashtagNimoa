@@ -1,4 +1,6 @@
-﻿namespace TexasHoldem.AI.NimoaPlayer
+﻿using TexasHoldem.Logic.Cards;
+
+namespace TexasHoldem.AI.NimoaPlayer
 {
     using System;
     using System.Collections.Generic;
@@ -21,7 +23,7 @@
 
         private static bool enemyAlwaysRise = true;
 
-        private static Dictionary<int, List<int>> betsPer10Rounds = new Dictionary<int, List<int>>();
+        private static Dictionary<int, List<int>> betsForBlinds = new Dictionary<int, List<int>>();
 
         private static int handNumber;
 
@@ -50,7 +52,7 @@
             base.StartRound(context);
         }
 
-        // LassVegas method (slow)
+        // LassVegas method (slow, accurate). Calculate on every turn and get average of all the aproximate ods for the round to reducethe error.
         public float GetAverageOdds(GameRoundType roundType)
         {
             float ods;
@@ -84,6 +86,21 @@
             startMoney = context.StartMoney;
         }
 
+        public override void EndGame(EndGameContext context)
+        {
+            base.EndGame(context);
+        }
+
+        public override void EndHand(EndHandContext context)
+        {
+            base.EndHand(context);
+        }
+
+        public override void EndRound(EndRoundContext context)
+        {
+            base.EndRound(context);
+        }
+
         public override PlayerAction GetTurn(GetTurnContext context)
         {
             if (context.MoneyLeft == 0)
@@ -94,6 +111,19 @@
             if (context.RoundType != GameRoundType.PreFlop)
             {
                 GetAverageOdds(context.RoundType);
+                /*if (context.RoundType == GameRoundType.Turn)
+                {
+                    var old = HandPotentialValuation.HandPotentialMonteCarloApproximation(
+                    this.FirstCard,
+                    this.SecondCard,
+                    this.CommunityCards,
+                    250);
+                    var accurate = HandPotentialValuation.GetHandPotential(
+                        this.FirstCard,
+                        this.SecondCard,
+                        this.CommunityCards);
+                    var br = 0;
+                }*/
             }
 
             var ods = roundOdds;
@@ -114,45 +144,59 @@
                     enemyAlwaysAllIn = false;
                 }
 
-                if (!enemyAlwaysRise && !enemyAlwaysAllIn && enemyLastAction.Type == PlayerActionType.Raise)
+                // increase on check or call
+                if (!enemyAlwaysRise && !enemyAlwaysAllIn)
                 {
-                    if (!betsPer10Rounds.ContainsKey(context.SmallBlind))
+                    if (enemyLastAction.Type == PlayerActionType.Raise)
                     {
-                        betsPer10Rounds[context.SmallBlind] = new List<int>();
+                        if (!betsForBlinds.ContainsKey(context.SmallBlind))
+                        {
+                            betsForBlinds[context.SmallBlind] = new List<int>();
+                        }
+
+                        var recentBets = betsForBlinds[context.SmallBlind];
+
+                        if (recentBets.Count > 30)
+                        {
+                            var averageBet = recentBets.Average();
+
+                            var maxBet = recentBets.Max();
+
+                            if (enemyLastAction.Money >= maxBet * .7)
+                            {
+                                ods -= .15f;
+                            }
+                            else if (enemyLastAction.Money > averageBet)
+                            {
+                                ods -= .1f;
+                            }
+                            else if (enemyLastAction.Money > averageBet / 2)
+                            {
+                                ods -= .05f;
+                            }
+                        }
+
+                        if (enemyLastAction.Money > context.SmallBlind * 2)
+                        {
+                            recentBets.Add(enemyLastAction.Money);
+                        }
                     }
-
-                    var recentBets = betsPer10Rounds[context.SmallBlind];
-
-
-                    if (recentBets.Count > 30)
+                    else if (enemyLastAction.Type == PlayerActionType.CheckCall)
                     {
-                        var averageBet = recentBets.Average();
-
-                        var maxBet = recentBets.Max();
-
-                        if (enemyLastAction.Money >= maxBet * .7)
+                        if (enemyLastAction.Money == 0)
                         {
-                            ods -= .15f;
+                            ods += .1f;
                         }
-                        else if (enemyLastAction.Money > averageBet)
+                        else if (enemyLastAction.Money < context.SmallBlind*2)
                         {
-                            ods -= .1f;
+                            ods += .05f;
                         }
-                        else if (enemyLastAction.Money > averageBet / 2)
-                        {
-                            ods -= .05f;
-                        }
-                    }
-
-                    if (enemyLastAction.Money > context.SmallBlind * 2)
-                    {
-                        recentBets.Add(enemyLastAction.Money);
                     }
                 }
             }
 
 
-            var merit = roundOdds * context.CurrentPot / context.MoneyToCall;
+            var merit = ods * context.CurrentPot / context.MoneyToCall;
 
             if (!enemyAlwaysAllIn && merit < 1 && context.CurrentPot > 0)
             {
@@ -170,7 +214,7 @@
                 return PlayerAction.Raise(moneyToRaise);
             }
 
-            if (enemyAlwaysAllIn && roundOdds >= .8)
+            if (enemyAlwaysAllIn && ods >= .8)
             {
                 PlayerAction.Raise(context.SmallBlind);
             }
