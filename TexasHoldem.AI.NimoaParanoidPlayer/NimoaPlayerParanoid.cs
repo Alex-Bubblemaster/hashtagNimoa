@@ -109,7 +109,7 @@
             }
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
-            if (merit < 1 && context.CurrentPot > 0)
+            /*if (merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
                 {
@@ -117,7 +117,7 @@
                 }
 
                 return PlayerAction.Fold();
-            }
+            }*/
 
             if (ods > .9 && context.MoneyLeft > 0)
             {
