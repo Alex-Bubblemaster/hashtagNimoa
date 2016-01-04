@@ -1,4 +1,6 @@
-﻿namespace TexasHoldem.AI.NimoaPlayer.Helpers
+﻿using System;
+
+namespace TexasHoldem.AI.NimoaPlayer.Helpers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -122,7 +124,6 @@
             return odsSum / potentialComunityCards.Count();
         }
 
-        // for small subsets
         public static float GetHandPotentialMonteCarloApproximation2(Card firstCard, Card secondCard, IEnumerable<Card> boardCards, int variants)
         {
             if (boardCards.Count() == AllPublicCardsCount)
@@ -140,9 +141,7 @@
             }
 
             var enemydCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
-            //var boardVariants = new List<IEnumerable<Card>>();
-
-            // Fast delete
+            
             var boardCardsVariants = new List<IEnumerable<Card>>();
             if (boardCards.Count() == 3)
             {
@@ -186,6 +185,100 @@
                     randomOpponentCardsIndex = RandomGenerator.RandomInt(0, enemydCardsVariants.Count);
 
                     opponentCards = enemydCardsVariants[randomOpponentCardsIndex];
+                    newPublicCards = boardCardsVariants[randomBoardIndex];
+                }
+
+                usedOpponentCarsdIndex.Add(randomOpponentCardsIndex);
+                if (boardCardsVariants.Count > variants)
+                {
+                    usedBoardsVariantsIndex.Add(randomBoardIndex);
+                }
+
+                var handsComparisonResult = Helpers.CompareCards(
+                    ourHand.Concat(newPublicCards),
+                    opponentCards.Concat(newPublicCards));
+
+                if (handsComparisonResult > 0)
+                {
+                    ahead++;
+                }
+                else if (handsComparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            float chances = (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+
+            return chances;
+        }
+
+        public static float GetHandPotentialMonteCarloApproximation3(Card firstCard, Card secondCard, IEnumerable<Card> boardCards, IList<Card[]> enemyCardsGuesses , int variants)
+        {
+            if (boardCards.Count() == AllPublicCardsCount)
+            {
+                return HandStrengthValuation.PostFlop(firstCard, secondCard, boardCards);
+            }
+
+            var remainingCards = FullDeck.ToList();
+            remainingCards.Remove(firstCard);
+            remainingCards.Remove(secondCard);
+
+            foreach (var card in boardCards)
+            {
+                remainingCards.Remove(card);
+            }
+
+            var boardCardsVariants = new List<IEnumerable<Card>>();
+            if (boardCards.Count() == 3)
+            {
+                var hiddenCardsVariants = CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();
+
+                for (int i = 0; i < hiddenCardsVariants.Count; i++)
+                {
+                    boardCardsVariants.Add(boardCards.Concat(hiddenCardsVariants[i]));
+                }
+            }
+            else if (boardCards.Count() == 4)
+            {
+                for (int i = 0; i < remainingCards.Count; i++)
+                {
+                    List<Card> cards = boardCards.ToList();
+                    cards.Add(remainingCards[i]);
+                    boardCardsVariants.Add(cards);
+                }
+            }
+
+            int ahead = 0;
+            int tied = 0;
+            int behind = 0;
+
+            variants = Math.Min(variants, enemyCardsGuesses.Count/2);
+            var ourHand = new List<Card>() { firstCard, secondCard };
+            var usedOpponentCarsdIndex = new HashSet<int>();
+            var usedBoardsVariantsIndex = new HashSet<int>();
+            for (int i = 0; i < variants; i++)
+            {
+                int randomBoardIndex = RandomGenerator.RandomInt(0, boardCardsVariants.Count);
+                int randomOpponentCardsIndex = RandomGenerator.RandomInt(0, enemyCardsGuesses.Count);
+
+                if (usedOpponentCarsdIndex.Contains(randomOpponentCardsIndex) || usedBoardsVariantsIndex.Contains(randomBoardIndex))
+                {
+                    continue;
+                }
+
+                var opponentCards = enemyCardsGuesses[randomOpponentCardsIndex];
+                var newPublicCards = boardCardsVariants[randomBoardIndex];
+                while (newPublicCards.Contains(opponentCards[0]) || newPublicCards.Contains(opponentCards[1]))
+                {
+                    randomBoardIndex = RandomGenerator.RandomInt(0, boardCardsVariants.Count);
+                    randomOpponentCardsIndex = RandomGenerator.RandomInt(0, enemyCardsGuesses.Count);
+
+                    opponentCards = enemyCardsGuesses[randomOpponentCardsIndex];
                     newPublicCards = boardCardsVariants[randomBoardIndex];
                 }
 

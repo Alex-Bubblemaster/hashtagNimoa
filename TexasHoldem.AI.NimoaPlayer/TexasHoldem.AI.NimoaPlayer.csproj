@@ -40,6 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\CardsCombinations.cs" />
+    <Compile Include="Helpers\EndGameState.cs" />
+    <Compile Include="Helpers\EnemyPredictions.cs" />
     <Compile Include="Helpers\HandPotentialValuation.cs" />
     <Compile Include="Helpers\HandStrengthValuation.cs" />
     <Compile Include="Helpers\RandomGenerator.cs" />

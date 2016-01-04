@@ -1,4 +1,6 @@
-﻿namespace TexasHoldem.AI.NimoaPlayer.Helpers
+﻿using System;
+
+namespace TexasHoldem.AI.NimoaPlayer.Helpers
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -108,7 +110,7 @@
 
             int ahead = 0, tied = 0, behind = 0;
             BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
-            var usedOpponentVariantsIndexes=new HashSet<int>();
+            var usedOpponentVariantsIndexes = new HashSet<int>();
             for (int i = 0; i < variants; i++)
             {
                 int randomIndex = RandomGenerator.RandomInt(0, cardsCombinations.Count);
@@ -126,6 +128,95 @@
                     ahead++;
                 }
                 else if (handsComparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            return (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+        }
+
+        public static float HandStrengthMonteCarloApproximation2(
+            Card firstCard,
+            Card secondCard,
+            IEnumerable<Card> boardCards,
+            IList<Card[]> guessedEnemyCards,
+            int variants)
+        {
+            // Assume boardCards >= 3 Create a list with ours + comunity cards
+            var ourHandsCards = boardCards.ToList();
+            ourHandsCards.Add(firstCard);
+            ourHandsCards.Add(secondCard);
+
+            /*var remainingCards = FullDeck.ToList();
+
+            foreach (var card in ourHandsCards)
+            {
+                remainingCards.Remove(card);
+            }*/
+
+            /*var possiblePublicCardsCombinations =
+                CardsCombinations.CombinationsNoRepetitionsIterative(remainingCards, 2).ToList();*/
+
+            variants = Math.Min(variants, guessedEnemyCards.Count / 2);
+            int ahead = 0, tied = 0, behind = 0;
+            BestHand ourBestHand = HandEvaluator.GetBestHand(ourHandsCards);
+            var usedOpponentVariantsIndexes = new HashSet<int>();
+            for (int i = 0; i < variants; i++)
+            {
+                int randomIndex = RandomGenerator.RandomInt(0, guessedEnemyCards.Count);
+                while (usedOpponentVariantsIndexes.Contains(randomIndex))
+                {
+                    randomIndex = RandomGenerator.RandomInt(0, guessedEnemyCards.Count);
+                }
+
+                usedOpponentVariantsIndexes.Add(randomIndex);
+                if (ourHandsCards.Contains(guessedEnemyCards[randomIndex][0]) ||
+                    ourHandsCards.Contains(guessedEnemyCards[randomIndex][1]))
+                {
+                    continue;
+                }
+
+                BestHand oponentCurrentBestHand = HandEvaluator.GetBestHand(guessedEnemyCards[randomIndex].Concat(boardCards));
+
+                int handsComparisonResult = ourBestHand.CompareTo(oponentCurrentBestHand);
+                if (handsComparisonResult > 0)
+                {
+                    ahead++;
+                }
+                else if (handsComparisonResult == 0)
+                {
+                    tied++;
+                }
+                else
+                {
+                    behind++;
+                }
+            }
+
+            return (ahead + ((float)tied / 2)) / (ahead + tied + behind);
+        }
+
+        public static float HandStrengthPreFlopGuessedEnemyCards(
+            Card firstCard,
+            Card secondCard,
+            IList<Card[]> enemyCrardsGuesses)
+        {
+            var ourOdds = PreFlopOdsLookupTable(firstCard, secondCard);
+
+            int ahead = 0, tied = 0, behind = 0;
+            foreach (var enemyCrardsGuess in enemyCrardsGuesses)
+            {
+                var enemyOdds = PreFlopOdsLookupTable(enemyCrardsGuess[0], enemyCrardsGuess[1]);
+                if (ourOdds > enemyOdds)
+                {
+                    ahead++;
+                }
+                else if (ourOdds == enemyOdds)
                 {
                     tied++;
                 }
