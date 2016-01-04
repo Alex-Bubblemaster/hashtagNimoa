@@ -30,6 +30,10 @@ namespace TexasHoldem.AI.NimoaPlayer
 
         private static int handNumber;
 
+        private int aintiAIReverseLogickCoeficient;
+        private int victories;
+        private int defeats;
+
         private static int realBetThreshhold;
 
         private static List<float> oddsForThisRound;
@@ -49,9 +53,6 @@ namespace TexasHoldem.AI.NimoaPlayer
         private int enemyCardsPredictionHits;
 
         private int enemyCardsPredictionMisses;
-        private int aintiAIReverseLogickCoeficient;
-        private int victories;
-        private int defeats;
 
         public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
 
@@ -96,6 +97,9 @@ namespace TexasHoldem.AI.NimoaPlayer
         public override void StartRound(StartRoundContext context)
         {
             this.aintiAIReverseLogickCoeficient = RandomProvider.Next(0, 100);
+            this.currentRoundType = context.RoundType;
+            oddsForThisRound = new List<float>();
+
             this.currentRoundType = context.RoundType;
             oddsForThisRound = new List<float>();
 
@@ -375,7 +379,7 @@ namespace TexasHoldem.AI.NimoaPlayer
                             recentBets.Add(enemyLastAction.Money);
                         }
                     }
-                    else if (enemyAlwaysCall && enemyLastAction.Type == PlayerActionType.CheckCall)// && enemyMoney>0
+                    else if (enemyAlwaysCall && enemyLastAction.Type == PlayerActionType.CheckCall)
                     {
                         if (enemyLastAction.Money == 0)
                         {
@@ -426,11 +430,6 @@ namespace TexasHoldem.AI.NimoaPlayer
 
             if (ods >= .8) //// Recommended
             {
-                /*if (context.MyMoneyInTheRound > context.MoneyLeft / 2)
-                {
-                    return PlayerAction.CheckOrCall();
-                }*/
-
                 var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
                 var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
                 return PlayerAction.Raise(moneyToRaise);
