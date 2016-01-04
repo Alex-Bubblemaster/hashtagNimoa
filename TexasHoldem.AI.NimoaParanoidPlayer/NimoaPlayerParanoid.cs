@@ -80,6 +80,11 @@
         {
             float ods = roundOdds;
 
+            if (context.MoneyLeft == 0)
+            {
+                return PlayerAction.CheckOrCall();
+            }
+
             // TODO: raise ods if last action is call and money <= smallBlind
 
             // last enemy action based paranoia. Only weors if the other AI is good.
@@ -109,7 +114,7 @@
             }
 
             var merit = ods * context.CurrentPot / context.MoneyToCall;
-            if (merit < 1 && context.CurrentPot > 0)
+            /*if (merit < 1 && context.CurrentPot > 0)
             {
                 if (context.CanCheck)
                 {
@@ -117,7 +122,7 @@
                 }
 
                 return PlayerAction.Fold();
-            }
+            }*/
 
             if (ods > .9 && context.MoneyLeft > 0)
             {
