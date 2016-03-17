@@ -39,6 +39,10 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AntiAllInStrategy.cs" />
+    <Compile Include="AntiAlwaysCallStrategy.cs" />
+    <Compile Include="AntiDumPlayerStrategy.cs" />
+    <Compile Include="CautiousStrategy.cs" />
     <Compile Include="Helpers\CardsCombinations.cs" />
     <Compile Include="Helpers\EndGameState.cs" />
     <Compile Include="Helpers\EnemyPredictions.cs" />

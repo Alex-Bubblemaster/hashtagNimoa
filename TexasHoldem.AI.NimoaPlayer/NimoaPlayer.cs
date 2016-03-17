@@ -50,18 +50,30 @@ namespace TexasHoldem.AI.NimoaPlayer
 
         private IList<Card[]> enemyCardsPrediction;
 
+        private IList<Card[]> enemyCardsPredictionWorstCase;
+
         private int enemyCardsPredictionHits;
 
         private int enemyCardsPredictionMisses;
+        private bool enemyRising;
 
-        public override string Name { get; } = "NimoaPlayer" + Guid.NewGuid();
+        private string CurrentName { get; set; } = "NimoaPlayer" + Guid.NewGuid();
+
+        public override string Name
+        {
+            get
+            {
+                return this.CurrentName;
+            }
+        }
 
         public override void StartGame(StartGameContext context)
         {
+            var newEnemyName = context.PlayerNames.FirstOrDefault(n => n != this.Name);
+            //this.CurrentName = "NimoaPlayer_" + Guid.NewGuid();
             base.StartGame(context);
             gamesCount++;
             startMoney = context.StartMoney;
-            var newEnemyName = context.PlayerNames.FirstOrDefault(n => n != this.Name);
             if (newEnemyName != this.enemyName)
             {
                 this.enemyName = newEnemyName;
@@ -82,6 +94,8 @@ namespace TexasHoldem.AI.NimoaPlayer
                 this.victories = 0;
                 this.defeats = 0;
                 betsForBlinds = new Dictionary<int, List<int>>();
+                EnemyPredictions.MaxCallThreshold = .4f;
+                EnemyPredictions.MinBetThreshold = .7f;
             }
         }
 
@@ -92,12 +106,19 @@ namespace TexasHoldem.AI.NimoaPlayer
             realBetThreshhold = context.SmallBlind * 2;
             this.thisHandEnemyRising = new Dictionary<GameRoundType, bool>();
             this.enemyCardsPrediction = null;
+            this.enemyRising = false;
         }
 
         public override void StartRound(StartRoundContext context)
         {
             this.aintiAIReverseLogickCoeficient = RandomProvider.Next(0, 100);
             this.currentRoundType = context.RoundType;
+
+            if (context.MoneyLeft == 0) //  || enemyMoney == 0
+            {
+                return;
+            }
+
             oddsForThisRound = new List<float>();
 
             this.currentRoundType = context.RoundType;
@@ -106,12 +127,6 @@ namespace TexasHoldem.AI.NimoaPlayer
             if (context.RoundType == GameRoundType.PreFlop)
             {
                 roundOdds = HandStrengthValuation.PreFlopOdsLookupTable(this.FirstCard, this.SecondCard);
-
-                // assume worst case
-                this.enemyCardsPrediction = EnemyPredictions.PredictEnemyCardsPreFlop(
-                        this.FirstCard,
-                        this.SecondCard,
-                        PlayerAction.Raise(1));
             }
             else
             {
@@ -130,8 +145,14 @@ namespace TexasHoldem.AI.NimoaPlayer
         // LassVegas method (slow, accurate). Calculate on every turn and get average of all the aproximate ods for the round to reducethe error.
         public float GetAverageOdds(GameRoundType roundType)
         {
+            var predictions = this.enemyCardsPrediction;
+            if (predictions == null)
+            {
+                predictions = this.enemyCardsPredictionWorstCase;
+            }
+
             float ods;
-            if (!(enemyAlwaysAllIn || enemyAlwaysRise) && this.enemyCardsPrediction != null)
+            if (!(enemyAlwaysAllIn || enemyAlwaysRise) && predictions != null)
             {
                 if (roundType == GameRoundType.Flop || roundType == GameRoundType.Turn)
                 {
@@ -140,7 +161,7 @@ namespace TexasHoldem.AI.NimoaPlayer
                         this.FirstCard,
                         this.SecondCard,
                         this.CommunityCards,
-                        this.enemyCardsPrediction.ToList(),
+                        predictions,
                         250);
                 }
                 else
@@ -149,7 +170,7 @@ namespace TexasHoldem.AI.NimoaPlayer
                         this.FirstCard,
                         this.SecondCard,
                         this.CommunityCards,
-                        this.enemyCardsPrediction.ToList(),
+                        predictions,
                         500); // 500 passing
                 }
             }
@@ -181,13 +202,24 @@ namespace TexasHoldem.AI.NimoaPlayer
 
         public override void EndGame(EndGameContext context)
         {
+            this.CurrentName = "NimoaPlayer_" + Guid.NewGuid();
             base.EndGame(context);
+
+            if (context.WinnerName == this.Name)
+            {
+                this.victories++;
+            }
+            else
+            {
+                this.defeats++;
+            }
         }
 
         public override void EndHand(EndHandContext context)
         {
             if (context.ShowdownCards.Count > 0)
             {
+                //var enemyCards = context.ShowdownCards.FirstOrDefault(n => !n.Key.Contains("NimoaPlayer")).Value.ToList();
                 var enemyCards = context.ShowdownCards[this.enemyName].ToList();
                 // var myHand = context.ShowdownCards[this.Name].Concat(this.CommunityCards);
                 // var enemyHand = enemyCards.Concat(this.CommunityCards);
@@ -202,6 +234,17 @@ namespace TexasHoldem.AI.NimoaPlayer
                             this.enemyCardsPredictionMisses--;
                             break;
                         }
+                    }
+
+                    var enemyOdds = HandStrengthValuation.PreFlopOdsLookupTable(enemyCards[0], enemyCards[1]);
+
+                    if (this.enemyRising)
+                    {
+                        EnemyPredictions.MinBetThreshold = Math.Min(EnemyPredictions.MinBetThreshold, enemyOdds);
+                    }
+                    else
+                    {
+                        EnemyPredictions.MaxCallThreshold = Math.Max(EnemyPredictions.MaxCallThreshold, enemyOdds);
                     }
                 }
 
@@ -238,33 +281,91 @@ namespace TexasHoldem.AI.NimoaPlayer
             base.EndHand(context);
         }
 
+        private PlayerAction previousRoundLastEnemyAction;
         public override void EndRound(EndRoundContext context)
         {
-            base.EndRound(context);
-            // the enemy expects to win
-            var enemyBets = context.RoundActions
-                .Where(
-                    a =>
-                        a.PlayerName == this.enemyName && a.Action.Money > realBetThreshhold);
+            var enemyActions = context.RoundActions.Where(a => a.PlayerName == enemyName).ToList();
+            if (enemyActions.Count > 1)
+            {
+                var enemyLastAction = enemyActions[enemyActions.Count - 1].Action;
 
-            if (enemyBets.Count() > 1)
-            {
-                this.thisHandEnemyRising.Add(this.currentRoundType, true);
-            }
-            else
-            {
-                this.thisHandEnemyRising.Add(this.currentRoundType, false);
+                if (enemyLastAction == PlayerAction.Fold())
+                {
+                    enemyAlwaysRise = false;
+                    enemyAlwaysAllIn = false;
+                    enemyAlwaysCall = false;
+
+                    return;
+                }
+
+                previousRoundLastEnemyAction = enemyLastAction;
+
+                if (currentRoundType == GameRoundType.PreFlop
+                && !(enemyAlwaysAllIn || enemyAlwaysCall || enemyAlwaysRise))
+                {
+                    var enemyFirstPreFlopAction = enemyActions[1].Action;
+
+                    if (enemyFirstPreFlopAction.Type == PlayerActionType.Raise)
+                    {
+                        enemyRising = true;
+                    }
+                    else
+                    {
+                        enemyRising = false;
+                    }
+
+                    enemyCardsPrediction = EnemyPredictions.PredictEnemyCardsPreFlop(
+                        this.FirstCard,
+                        this.SecondCard,
+                        enemyFirstPreFlopAction);
+                }
             }
         }
 
         public override PlayerAction GetTurn(GetTurnContext context)
         {
+            var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
+            if ((enemyAlwaysAllIn || enemyAlwaysCall || enemyAlwaysRise) && context.PreviousRoundActions.Count > 2)
+            {
+                PlayerAction enemyLastAction = context.PreviousRoundActions.Last().Action;
+
+                if ((enemyAlwaysRise || enemyAlwaysAllIn) && enemyLastAction.Type != PlayerActionType.Raise
+                    && enemyMoney > 0)
+                {
+                    enemyAlwaysRise = false;
+                    enemyAlwaysAllIn = false;
+                }
+
+                if (enemyAlwaysRise && enemyLastAction.Money != context.SmallBlind && enemyMoney > 0)
+                {
+                    enemyAlwaysRise = false;
+                }
+
+                if (enemyAlwaysCall && enemyLastAction.Type != PlayerActionType.CheckCall)
+                {
+                    enemyAlwaysCall = false;
+                }
+
+                // TODO: if ! moneyleft - false
+                if (enemyAlwaysAllIn && enemyLastAction.Type == PlayerActionType.Raise && enemyMoney > 0)
+                {
+                    enemyAlwaysAllIn = false;
+                }
+
+                //TODO: detect variable raise strategy
+            }
+            else if (context.RoundType != GameRoundType.PreFlop && this.previousRoundLastEnemyAction != null && this.previousRoundLastEnemyAction.Type == PlayerActionType.CheckCall && enemyMoney > 0)
+            {
+                enemyAlwaysAllIn = false;
+                enemyAlwaysRise = false;
+            }
+
             if (context.MoneyLeft == 0)
             {
                 return PlayerAction.CheckOrCall();
             }
 
-            if (context.RoundType == GameRoundType.PreFlop && context.PreviousRoundActions.Count >= 3 && context.PreviousRoundActions.Count < 5)
+            /*if (context.RoundType == GameRoundType.PreFlop && context.PreviousRoundActions.Count >= 3 && context.PreviousRoundActions.Count < 5)
             {
                 var enemyActions = context.PreviousRoundActions.Where(a => a.PlayerName == this.enemyName).ToList();
                 // remove entry fee
@@ -275,72 +376,38 @@ namespace TexasHoldem.AI.NimoaPlayer
                 /*this.enemyCardsPrediction = EnemyPredictions.PredictEnemyCardsPreFlop(
                         this.FirstCard,
                         this.SecondCard,
-                        PlayerAction.Raise(1));*/
+                        PlayerAction.Raise(1));#1#
 
                 if (enemyFirstPreFlopAction != null)
                 {
                     /*this.enemyCardsPrediction = EnemyPredictions.PredictEnemyCardsPreFlop(
                         this.FirstCard,
                         this.SecondCard,
-                        enemyFirstPreFlopAction);*/
+                        enemyFirstPreFlopAction);#1#
 
                     /*roundOdds = HandStrengthValuation.HandStrengthPreFlopGuessedEnemyCards(
                         this.FirstCard,
                         this.SecondCard,
-                        this.enemyCardsPrediction.ToList());*/
+                        this.enemyCardsPrediction.ToList());#1#
                 }
-                else
+                /*else
                 {
                     // need the info
-                    // return PlayerAction.Raise(1);
-                }
-            }
+                    return PlayerAction.Raise(1);
+                }#1#
+            }*/
 
             if (context.RoundType != GameRoundType.PreFlop)
             {
                 this.GetAverageOdds(context.RoundType);
-                /*if (context.RoundType == GameRoundType.Flop && oddsForThisRound.Count > 2)
-                {
-                    var old = HandPotentialValuation.HandPotentialMonteCarloApproximation(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards,
-                    250);
-                    var old2 = HandPotentialValuation.GetHandPotentialMonteCarloApproximation2(
-                    this.FirstCard,
-                    this.SecondCard,
-                    this.CommunityCards,
-                    250);
-                    var accurate = HandPotentialValuation.GetHandPotential(
-                        this.FirstCard,
-                        this.SecondCard,
-                        this.CommunityCards);
-                    var br = 0;
-                }*/
             }
 
             var ods = roundOdds;
 
-            var enemyMoney = startMoney * 2 - context.MoneyLeft - context.CurrentPot;
             if (context.PreviousRoundActions.Count > 0)
             {
+                // TODO: enemy first action this round
                 PlayerAction enemyLastAction = context.PreviousRoundActions.Last().Action;
-
-                if (enemyAlwaysRise && enemyLastAction.Type != PlayerActionType.Raise && enemyMoney > 0)
-                {
-                    enemyAlwaysRise = false;
-                    enemyAlwaysAllIn = false;
-                }
-
-                if (enemyAlwaysCall && enemyLastAction.Type != PlayerActionType.CheckCall && enemyMoney > 0)
-                {
-                    enemyAlwaysCall = false;
-                }
-
-                if (enemyAlwaysAllIn && enemyLastAction.Money < enemyMoney && enemyLastAction.Money > context.SmallBlind)
-                {
-                    enemyAlwaysAllIn = false;
-                }
 
                 // increase on check or call because that works best somehow
                 if (!enemyAlwaysRise && !enemyAlwaysAllIn)
@@ -372,6 +439,7 @@ namespace TexasHoldem.AI.NimoaPlayer
                             {
                                 ods -= .05f;
                             }
+                            //TODO: distinguish check and call
                         }
 
                         if (enemyLastAction.Money > realBetThreshhold)
@@ -379,18 +447,12 @@ namespace TexasHoldem.AI.NimoaPlayer
                             recentBets.Add(enemyLastAction.Money);
                         }
                     }
-                    else if (enemyAlwaysCall && enemyLastAction.Type == PlayerActionType.CheckCall)
+                    else if (enemyAlwaysCall && enemyLastAction.Type == PlayerActionType.CheckCall)// && enemyMoney>0
                     {
                         if (enemyLastAction.Money == 0)
                         {
                             ods += .1f;
                         }
-
-                        // enemy action for call always has 0 money
-                        /*else if (enemyLastAction.Money < realBetThreshhold)
-                        {
-                            ods += .05f;
-                        }*/
                     }
                 }
             }
@@ -405,86 +467,17 @@ namespace TexasHoldem.AI.NimoaPlayer
                 }
             }
 
-            var merit = ods * context.CurrentPot / context.MoneyToCall;
-
-            if (!enemyAlwaysAllIn && merit < 1 && context.CurrentPot > 0)
+            if (enemyAlwaysAllIn)
             {
-                if (context.CanCheck)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                return PlayerAction.Fold();
+                return AntiAllInStrategy.GetPlayerAction(ods, enemyMoney, context);
             }
 
-            if (ods > .9 && context.MoneyLeft > 0)
+            if (enemyAlwaysCall || enemyAlwaysRise)
             {
-                var moneyToRaise = Math.Min(enemyMoney, context.MoneyLeft) + 1;
-                return PlayerAction.Raise(moneyToRaise);
+                return AntiDumPlayerStrategy.GetPlayerAction(ods, enemyMoney, context);
             }
 
-            /*if (enemyAlwaysAllIn && ods >= .8)
-            {
-                PlayerAction.Raise(context.SmallBlind);
-            }*/
-
-            if (ods >= .8) //// Recommended
-            {
-                var maxBet = context.MoneyLeft / RandomProvider.Next(2, 4);
-                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
-                return PlayerAction.Raise(moneyToRaise);
-            }
-
-            if (ods >= .7) //// Recommended
-            {
-                if (context.MyMoneyInTheRound > context.MoneyLeft / 3)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                var maxBet = context.MoneyLeft / RandomProvider.Next(3, 8);
-                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
-                return PlayerAction.Raise(moneyToRaise);
-            }
-
-            if (ods >= .6)
-            {
-                if (context.MyMoneyInTheRound > context.MoneyLeft / 4)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                var maxBet = context.MoneyLeft / RandomProvider.Next(6, 14);
-                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
-                return PlayerAction.Raise(moneyToRaise);
-            }
-
-            if (ods > .5) //// Risky
-            {
-                if (context.MyMoneyInTheRound > context.MoneyLeft / 5)
-                {
-                    return PlayerAction.CheckOrCall();
-                }
-
-                var maxBet = context.MoneyLeft / RandomProvider.Next(12, 24);
-                var moneyToRaise = Math.Min(maxBet, enemyMoney) + 1;
-                return PlayerAction.Raise(moneyToRaise);
-            }
-
-            if (merit > 1)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-
-            // fcsk it
-            if (context.CanCheck) // || (context.MoneyToCall <= context.SmallBlind && context.SmallBlind < context.MoneyLeft / 20)
-            {
-                return PlayerAction.CheckOrCall();
-            }
-            else
-            {
-                return PlayerAction.Fold();
-            }
+            return CautiousStrategy.GetPlayerAction(ods, enemyMoney, context);
         }
     }
 }

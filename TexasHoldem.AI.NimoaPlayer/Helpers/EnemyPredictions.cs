@@ -12,6 +12,8 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
         private const int PlayerCardsCount = 2;
         private static readonly IList<Card> FullDeck = Deck.AllCards;
         private static readonly IHandEvaluator HandEvaluator = new HandEvaluator();
+        public static float MinBetThreshold = .5f;
+        public static float MaxCallThreshold = .5f;
 
         public static IList<Card[]> PredictEnemyCardsPreFlop(Card firstCard, Card secondCard, PlayerAction firstEnemyPreFlopAction)
         {
@@ -33,11 +35,11 @@ namespace TexasHoldem.AI.NimoaPlayer.Helpers
                 var enemyOdds = HandStrengthValuation.PreFlopOdsLookupTable(oponentCardsVariant[0],
                     oponentCardsVariant[1]);
 
-                if (firstEnemyPreFlopAction.Money > 0 && enemyOdds > .6)
+                if (firstEnemyPreFlopAction.Money > 0 && enemyOdds > MinBetThreshold) // .6
                 {
                     opponentLikelyCardsPredictions.Add(oponentCardsVariant);
                 }
-                else if (firstEnemyPreFlopAction.Money == 0 && enemyOdds <= .65)
+                else if (firstEnemyPreFlopAction.Money == 0 && enemyOdds <= MaxCallThreshold) // .65
                 {
                     opponentLikelyCardsPredictions.Add(oponentCardsVariant);
                 }

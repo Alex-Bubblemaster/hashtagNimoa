@@ -76,6 +76,12 @@
             base.StartRound(context);
         }
 
+        public override void StartGame(StartGameContext context)
+        {
+            base.StartGame(context);
+            startMoney = context.StartMoney;
+        }
+
         public override PlayerAction GetTurn(GetTurnContext context)
         {
             float ods = roundOdds;
